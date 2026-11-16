@@ -88,7 +88,7 @@
   <rect class="gate" x="16" y="538" width="1248" height="72" rx="10"/>
   <text class="b" x="32" y="562" style="fill:#b5392f">CI on every pull request. A red build blocks the merge, and no session merges its own work.</text>
   <text class="s" x="32" y="582">policy on every route · role matrix · no self-approval · append-only audit · core and tool boundaries · no raw PII · tool namespaces · lint · type check</text>
-  <text class="it" x="32" y="600">The guardrail tests are generic, so session 4's tool is checked by tests it did not write and cannot edit.</text>
+  <text class="it" x="32" y="600">The guardrail tests are generic, so session 4's tool is checked by tests it did not write and is not allowed to edit.</text>
 
   <rect class="human" x="16" y="622" width="1248" height="72" rx="10"/>
   <text class="b" x="32" y="646">Every session appends to BUILD_LOG.md, and failures stay in.</text>

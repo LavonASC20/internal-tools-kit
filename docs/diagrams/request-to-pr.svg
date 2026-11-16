@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720" role="img" aria-labelledby="t d">
+  <title id="t">From a plain-English request to a reviewed pull request</title>
+  <desc id="d">Swimlane. A person writes a request in plain English. It becomes one ticket in the team's tracker. An owner approves it by adding a label. A Devin automation triggers on the label and starts a session that follows the new-tool playbook and opens a pull request. CI and Devin Review run. An engineer reviews the permission table and the diff and merges. The requester is told. This is a design for the pilot and is not built in the prototype.</desc>
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#5b6770"/></marker>
+    <style>
+      text { font-family: Helvetica, Arial, sans-serif; fill: #1c2329; font-size: 13px; }
+      .b { font-weight: 700; }
+      .s { font-size: 12px; fill: #3b4650; }
+      .it { font-size: 11px; fill: #5b6770; font-style: italic; }
+      .ln { font-size: 12px; fill: #5b6770; font-weight: 700; letter-spacing: .6px; }
+      .lane { fill: #fbfcfd; stroke: #b8c0c7; stroke-width: 1.5; }
+      .human { fill: #fff6e0; stroke: #b07a10; stroke-width: 2; }
+      .devin { fill: #e8f1fb; stroke: #2f6db5; stroke-width: 2; }
+      .sys { fill: #f4f6f8; stroke: #5b6770; stroke-width: 1.5; }
+      .gate { fill: #fdeceb; stroke: #b5392f; stroke-width: 2; }
+      .ar { fill: none; stroke: #5b6770; stroke-width: 1.8; marker-end: url(#ah); }
+    </style>
+  </defs>
+  <rect width="1280" height="720" fill="#ffffff"/>
+  <text class="b" x="24" y="34" style="font-size:16px">Anyone can ask for a tool in plain English. An engineer still reviews every change.</text>
+
+  <rect class="lane" x="16" y="60" width="1248" height="172" rx="10"/>
+  <text class="ln" x="28" y="80">PEOPLE</text>
+  <rect class="lane" x="16" y="248" width="1248" height="204" rx="10"/>
+  <text class="ln" x="1250" y="268" text-anchor="end">TRACKER, DEVIN AND CI</text>
+
+  <!-- people lane -->
+  <rect class="human" x="30" y="92" width="210" height="118" rx="8"/>
+  <text class="b" x="135" y="118" text-anchor="middle">1 · Request</text>
+  <text class="it" x="135" y="134" text-anchor="middle">anyone, in the app or in chat</text>
+  <text class="s" x="135" y="158" text-anchor="middle">who uses it, what they can do,</text>
+  <text class="s" x="135" y="174" text-anchor="middle">what needs a second person</text>
+
+  <rect class="human" x="300" y="92" width="200" height="118" rx="8"/>
+  <text class="b" x="400" y="118" text-anchor="middle">3 · Triage</text>
+  <text class="s" x="400" y="142" text-anchor="middle">an owner approves the request</text>
+  <text class="s" x="400" y="158" text-anchor="middle">by adding a label</text>
+  <text class="it" x="400" y="182" text-anchor="middle">duplicates and noise stop here</text>
+
+  <rect class="gate" x="840" y="92" width="200" height="118" rx="8"/>
+  <text class="b" x="940" y="118" text-anchor="middle" style="fill:#b5392f">6 · Review</text>
+  <text class="s" x="940" y="142" text-anchor="middle">an engineer reads the permission</text>
+  <text class="s" x="940" y="158" text-anchor="middle">table and the diff, then merges</text>
+  <text class="it" x="940" y="182" text-anchor="middle">the only way into main</text>
+
+  <rect class="human" x="1090" y="92" width="160" height="118" rx="8"/>
+  <text class="b" x="1170" y="118" text-anchor="middle">7 · Live</text>
+  <text class="s" x="1170" y="142" text-anchor="middle">the ticket closes and</text>
+  <text class="s" x="1170" y="158" text-anchor="middle">the requester is told</text>
+
+  <!-- systems lane -->
+  <rect class="sys" x="30" y="300" width="210" height="110" rx="8"/>
+  <text class="b" x="135" y="326" text-anchor="middle">2 · Ticket</text>
+  <text class="s" x="135" y="350" text-anchor="middle">one ticket in the tracker</text>
+  <text class="s" x="135" y="366" text-anchor="middle">the team already runs</text>
+  <text class="it" x="135" y="390" text-anchor="middle">Jira or Linear, not both</text>
+
+  <rect class="devin" x="300" y="300" width="200" height="110" rx="8"/>
+  <text class="b" x="400" y="326" text-anchor="middle">4 · Devin automation</text>
+  <text class="s" x="400" y="350" text-anchor="middle">trigger: label added</text>
+  <text class="s" x="400" y="366" text-anchor="middle">filter, spend and rate limits</text>
+  <text class="it" x="400" y="390" text-anchor="middle">a Devin feature, not custom code</text>
+
+  <rect class="devin" x="560" y="300" width="220" height="110" rx="8"/>
+  <text class="b" x="670" y="326" text-anchor="middle">5 · Devin session</text>
+  <text class="s" x="670" y="350" text-anchor="middle">follows playbooks/new-tool.md</text>
+  <text class="s" x="670" y="366" text-anchor="middle">PR opens with permissions on top</text>
+  <text class="it" x="670" y="390" text-anchor="middle">the ticket text is the request</text>
+
+  <rect class="gate" x="840" y="300" width="200" height="110" rx="8"/>
+  <text class="b" x="940" y="326" text-anchor="middle" style="fill:#b5392f">CI and Devin Review</text>
+  <text class="s" x="940" y="350" text-anchor="middle">seven guardrails on every PR</text>
+  <text class="s" x="940" y="366" text-anchor="middle">a red build blocks the merge</text>
+  <text class="it" x="940" y="390" text-anchor="middle">tests the session did not write</text>
+
+  <!-- connectors -->
+  <path class="ar" d="M135 210 V300"/>
+  <path class="ar" d="M240 355 H270 V151 H300"/>
+  <path class="ar" d="M400 210 V300"/>
+  <path class="ar" d="M500 355 H560"/>
+  <path class="ar" d="M780 355 H840"/>
+  <path class="ar" d="M940 300 V210"/>
+  <path class="ar" d="M1040 151 H1090"/>
+
+  <!-- bands -->
+  <rect class="gate" x="16" y="470" width="1248" height="96" rx="10"/>
+  <text class="b" x="32" y="498" style="fill:#b5392f">A free-text request is input to the playbook. It cannot change the rules.</text>
+  <text class="s" x="32" y="520">The playbook forbids edits to core/ and the guardrail tests · CI fails any PR that weakens a control · two people approve: the ticket, then the PR</text>
+  <text class="it" x="32" y="542">To add in the pilot: code owners on core/ and tests/, and a spend limit on every session the automation starts.</text>
+
+  <rect class="human" x="16" y="584" width="1248" height="96" rx="10"/>
+  <text class="b" x="32" y="612">Designed for the pilot. Not built in the prototype.</text>
+  <text class="s" x="32" y="634">Evidence so far: session 4 took a one-paragraph request to a reviewable PR in 14 minutes, with one human correction.</text>
+  <text class="it" x="32" y="656">Pilot measures: time from request to reviewable PR · reviewer minutes per request · requests that forced a change to the core</text>
+</svg>

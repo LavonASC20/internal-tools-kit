@@ -114,6 +114,14 @@ went wrong.
 - Review was the expensive part. Session 1 needed nine corrections before its core was safe to
   merge, including that any tool could grant any permission.
 
+### What would come next
+
+The second tool started from one plain-English paragraph. The next step is to let anyone file
+that paragraph as a ticket, have an owner approve it, and have Devin pick it up from there. This
+is a design for a pilot. It is not built here.
+
+![Request to pull request](docs/diagrams/request-to-pr.png)
+
 ## Guardrails
 
 These run in CI on every pull request. They discover routes, roles, tools and PII fields at
