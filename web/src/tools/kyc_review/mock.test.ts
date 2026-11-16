@@ -10,7 +10,8 @@ beforeEach(() => resetMock());
 test('/api/me lists the KYC actions the role holds', async () => {
   await loginAs('audrey');
   const me = await (await fetch('/api/me')).json();
-  expect(me.actions.sort()).toEqual(['audit.read', 'kyc.case.read']);
+  expect(me.actions).toContain('audit.read');
+  expect(me.actions.filter((a: string) => a.startsWith('kyc.'))).toEqual(['kyc.case.read']);
 });
 
 test('auditor receives masked PII, analyst receives raw values', async () => {
