@@ -117,6 +117,7 @@ real. Per fix, from commit timestamps: F1 under 1 min, F2 under 1 min, F3 under 
     - the mock let anyone list approvals
   - Assumptions that matched: `/me` returns `actions`; an approval's `action` is the decider's action; approve/reject take `{comment}`; lists are bare arrays; errors use `{error: {code, message}}`.
 - Human correction: I had hidden Decide when the backend's `can_decide` was false. That was wrong for this prototype. SPEC section 8 includes Dana to show a self-approval being refused, so the server's `self_approval` error has to be visible in the UI. Decide is again shown when the request is pending and `/api/me` lists its action. `can_decide` stays in the types but no longer gates Decide. The test now checks that Dana sees Decide on her own request and that the `self_approval` refusal is displayed.
+- After both PRs merged: ran the SPEC section 2 flow in the browser on merged main against `docker compose up` + `make seed`. Dana proposes on flagged case 3; her self-approval shows the server's `self_approval` refusal; Ana sees no Decide; Sam approves; the case is cleared; Audrey sees masked PII and three audit rows (propose, approve, apply) with no raw PII. Noted, not changed: a refused self-approval writes no audit row, because only state changes are audited. The compose web container writes a root-owned `web/.vite/` cache that git did not ignore, so I added it to `web/.gitignore`.
 
 ### Session 3
 
