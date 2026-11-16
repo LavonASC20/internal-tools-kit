@@ -4,10 +4,15 @@ One entry per Devin session. Failures stay in.
 
 | Session | Start | End | Minutes | Consumption | Human corrections | Defects found in review | Guardrails green on first PR |
 |---|---|---|---|---|---|---|---|
-| 1 Core and KYC backend | 2026-11-16 00:37 EST | 2026-11-16 01:36 EST | ~59 | not measured in-session | 9 (3 in round 1, 6 in round 2) | 1 (Devin Review) | n/a (G1 to G6 are session 3) |
-| 2 Web shell and KYC pages | 2026-11-16 00:37 EST | 2026-11-16 00:50 EST | ~13 | | 1 | 3 (Devin Review) | n/a (G1-G6 not written yet; web typecheck, build and vitest green) |
-| 3 Guardrail tests and CI | 2026-11-16 01:56 EST | 2026-11-16 02:09 EST | ~13 | not measured in-session | 0 | | yes (G1 to G7 green against main on first run; no findings) |
-| 4 Feature flags (playbook) | 2026-11-16 02:15 EST | 2026-11-16 02:20 EST | ~5 (timed build, to the stop); kit fix ~2 on its own line below | not measured in-session | 1 | 2 (Devin Review on #6: 1 fixed, 1 escalated as a kit finding) | yes for backend (G1 to G7 green on first run with the tool); web vitest red until kit PR #5 |
+| 1 Core and KYC backend | 2026-11-16 00:37 EST | 2026-11-16 01:36 EST | ~59 | $0.16, size XS, 12 user messages | 9 (3 in round 1, 6 in round 2) | 1 (Devin Review) | n/a (G1 to G6 are session 3) |
+| 2 Web shell and KYC pages | 2026-11-16 00:37 EST | 2026-11-16 00:50 EST (first PR); follow-up fixes and the post-merge check ran to about 01:54 EST | ~13 to the first PR | $1.35, size XS, 9 user messages | 1 | 3 (Devin Review) | n/a (G1-G6 not written yet; web typecheck, build and vitest green) |
+| 3 Guardrail tests and CI | 2026-11-16 01:56 EST | 2026-11-16 02:09 EST | ~13 | $3.93, size XS, 2 user messages | 0 | | yes (G1 to G7 green against main on first run; no findings) |
+| 4 Feature flags (playbook) | 2026-11-16 02:15 EST | 2026-11-16 02:20 EST | ~5 (timed build, to the stop); kit fix ~2 on its own line below | $4.30, size S, 3 user messages | 1 | 2 (Devin Review on #6: 1 fixed, 1 escalated as a kit finding) | yes for backend (G1 to G7 green on first run with the tool); web vitest red until kit PR #5 |
+
+Consumption was added by hand after the sessions ended. It is the on-demand usage, session size
+and user message count shown in each session's panel in the Devin app, read between 02:40 and
+02:50 EST on 2026-11-16. The four sessions total $9.74. Devin's size guide puts XS at $4 or less
+and S above $4.
 
 ## Notes per session
 

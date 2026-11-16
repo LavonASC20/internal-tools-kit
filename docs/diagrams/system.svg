@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720" role="img" aria-labelledby="t d">
   <title id="t">Internal tools kit architecture</title>
-  <desc id="d">A web shell and tool pages talk to a FastAPI backend. Tools sit above a shared core of auth, policy, approvals, audit and masking, and import it one way. Postgres holds tool tables, one approval table with a self-approval check, and an append-only audit table. Devin adds a new tool from a playbook. Six generic CI tests cover every tool.</desc>
+  <desc id="d">A web shell and tool pages talk to a FastAPI backend. Tools sit above a shared core of auth, policy, approvals, audit and masking, and import it one way. Postgres holds tool tables, one approval table with a self-approval check, and an append-only audit table. Devin adds a new tool from a playbook. Seven generic CI tests cover every tool.</desc>
   <defs>
     <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#5b6770"/></marker>
     <marker id="ad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#b07a10"/></marker>
@@ -80,6 +80,8 @@
     <text class="s" x="482" y="402" text-anchor="middle">declares</text>
     <text class="s" x="482" y="418" text-anchor="middle">one action</text>
     <text class="it" x="482" y="442" text-anchor="middle">deny by default</text>
+    <text class="s" x="482" y="466" text-anchor="middle">grants stay in</text>
+    <text class="s" x="482" y="482" text-anchor="middle">tool namespace</text>
 
     <rect class="enf" x="542" y="340" width="100" height="166" rx="8"/>
     <text class="b" x="592" y="364" text-anchor="middle">approvals</text>
@@ -87,6 +89,8 @@
     <text class="s" x="592" y="402" text-anchor="middle">then decide</text>
     <text class="it" x="592" y="426" text-anchor="middle">proposer</text>
     <text class="it" x="592" y="442" text-anchor="middle">cannot decide</text>
+    <text class="s" x="592" y="466" text-anchor="middle">no PII in</text>
+    <text class="s" x="592" y="482" text-anchor="middle">the payload</text>
 
     <rect class="enf" x="652" y="340" width="100" height="166" rx="8"/>
     <text class="b" x="702" y="364" text-anchor="middle">audit</text>
@@ -99,8 +103,10 @@
     <text class="b" x="812" y="364" text-anchor="middle">masking</text>
     <text class="s" x="812" y="386" text-anchor="middle">PII fields</text>
     <text class="s" x="812" y="402" text-anchor="middle">marked once</text>
-    <text class="it" x="812" y="426" text-anchor="middle">masked unless</text>
-    <text class="it" x="812" y="442" text-anchor="middle">role may read</text>
+    <text class="it" x="812" y="426" text-anchor="middle">masked on every</text>
+    <text class="it" x="812" y="442" text-anchor="middle">serialization</text>
+    <text class="s" x="812" y="466" text-anchor="middle">unless caller</text>
+    <text class="s" x="812" y="482" text-anchor="middle">holds the action</text>
   </g>
 
   <!-- postgres -->
@@ -137,12 +143,13 @@
 
   <!-- CI band -->
   <rect class="gate" x="24" y="560" width="1232" height="136" rx="10"/>
-  <text class="b" x="40" y="586" style="fill:#b5392f">CI guardrails: six generic tests that discover routes, roles and tools at runtime, so a new tool is covered without writing them</text>
+  <text class="b" x="40" y="586" style="fill:#b5392f">CI guardrails: seven generic tests that discover routes, roles and tools at runtime, so a new tool is covered without writing them</text>
   <text class="s" x="40" y="612"><tspan class="b">G1</tspan>  every route declares a policy action</text>
   <text class="s" x="40" y="634"><tspan class="b">G2</tspan>  every role against every route: 403 exactly when the role lacks the action</text>
   <text class="s" x="40" y="656"><tspan class="b">G3</tspan>  a proposer cannot decide their own request, by API or direct insert</text>
   <text class="s" x="660" y="612"><tspan class="b">G4</tspan>  audit rows cannot change, and a failed change leaves no row</text>
   <text class="s" x="660" y="634"><tspan class="b">G5</tspan>  core imports no tool, and no tool imports another</text>
   <text class="s" x="660" y="656"><tspan class="b">G6</tspan>  a caller without the PII action never receives raw PII</text>
+  <text class="s" x="660" y="678"><tspan class="b">G7</tspan>  no tool grants or registers an action outside its own namespace</text>
   <text class="it" x="40" y="682">A rule that only lives in a prompt is a request. These fail the build.</text>
 </svg>
