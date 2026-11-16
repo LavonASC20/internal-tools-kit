@@ -1,6 +1,6 @@
 # Devin sessions
 
-The prompts used to build this repo, in order. Sessions 1 and 2 run in parallel. Session 3 starts when session 1 has merged. Session 4 starts after a human has reviewed the core.
+The opening prompt of each session, as sent, in order. Sessions 1 and 2 ran in parallel. Session 3 started after sessions 1 and 2 had merged. Session 4 started after the core had been reviewed. The follow-up questions and corrections in each session are recorded in [BUILD_LOG.md](../BUILD_LOG.md).
 
 Before session 1: confirm in a throwaway session that `docker compose up` with Postgres runs in Devin's environment.
 
@@ -56,46 +56,42 @@ Constraints:
 Deliverable: one PR. Append your session to BUILD_LOG.md.
 ```
 
-## Session 3: guardrail tests and CI (after session 1 merges)
+## Session 3: guardrail tests and CI (after sessions 1 and 2 merged)
 
 ```
-Read SPEC.md and AGENTS.md first.
+read SPEC.md and AGENTS.md first, and note your start time before you do anything.
 
-Outcome: the six guardrail tests in SPEC section 9 exist, are generic, and run in CI.
+this session is the guardrail tests + CI. main now has the core, the kyc tool and the web app merged.
 
-Build:
-- backend/tests/ with G1 to G6. Write them from SPEC.md, not from the
-  implementation. They must discover routes, roles, actions and tools at runtime
-  so a tool added later is covered without editing these tests.
-- GitHub Actions workflow: Postgres service, make lint, make test, web type check
-  and build.
+what i want:
+- backend/tests/ with G1 to G7 from SPEC section 9. write them from the spec, not from the implementation. they need to discover routes, roles, actions, tools and pii fields at runtime so a tool added later is covered without anyone editing these tests
+- a github actions workflow: postgres service, make lint, make test, and the web typecheck, build and tests
 
-Constraints:
-- If a guardrail fails against the current code, do not weaken the test. Report
-  the failure in the PR, then fix the code in a separate commit and say what was
-  wrong. These failures are findings and go in BUILD_LOG.md.
-- Do not change SPEC.md.
+some context so you dont waste time:
+- shared fixtures are already in backend/conftest.py. core has its own unit tests in backend/core/tests/, dont move or duplicate those
+- policy is frozen after startup, so if a test needs a throwaway tool or namespace you have to deal with that. look at how backend/core/tests/conftest.py does it
 
-Deliverable: one PR. Append your session to BUILD_LOG.md.
+rules:
+- i want proof each guardrail can actually fail. for each of G1 to G7, break the rule with a throwaway tool or a temporary change and paste the failing output in the PR. dont commit the breakage
+- if a guardrail fails against the current code do not weaken the test. report it in the PR, then fix the code in a seperate commit and say what was wrong. those are findings and they go in BUILD_LOG.md
+- dont change SPEC.md
+
+one PR. append your session to BUILD_LOG.md with start and end times and anyhting you got wrong
 ```
 
 ## Session 4: feature flags from the playbook (timed)
 
 ```
-Follow playbooks/new-tool.md exactly. Note your start time before you begin.
+follow playbooks/new-tool.md exactly. note your start time before you begin, this one is timed.
 
-The request:
-"Engineers need an admin panel for feature flags across dev, staging and prod.
-Anyone on the engineering team can see flags and toggle them in dev and staging.
-A toggle in prod needs approval from an engineering lead who is not the person
-asking. Every toggle is audited. Auditors can view flags."
+the request:
+"Engineers need an admin panel for feature flags across dev, staging and prod. Anyone on the engineering team can see flags and toggle them in dev and staging. A toggle in prod needs approval from an engineering lead who is not the person asking. Every toggle is audited. Auditors can view flags."
 
-Roles: engineer, eng_lead, auditor. Seed users Eli and Lee already exist.
+roles: engineer, eng_lead, auditor. seed users eli and lee already exist.
 
-If you think the core, the guardrail tests or the shell must change, stop and
-report it instead. That is a finding about the kit, not a problem to work around.
+if you think the core, the guardrail tests or the shell has to change, stop and tell me instead of working around it. thats a finding about the kit, not something to patch.
 
-Deliverable: one PR whose diff is inside backend/tools/feature_flags,
-web/src/tools/feature_flags and seed data. Record start time, end time and every
-correction in BUILD_LOG.md.
+the guardrail tests (G1 to G7) and CI are on main. run them before you open your PR.
+
+deliverable: one PR where the whole diff is inside backend/tools/feature_flags, web/src/tools/feature_flags and seed data (plus the BUILD_LOG.md entry). record start time, end time and every correction in BUILD_LOG.md, and answer the two questions at the bottom of the build log: did the diff stay inside the tool's folders, and did the core need to change
 ```

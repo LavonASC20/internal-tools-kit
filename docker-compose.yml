@@ -33,7 +33,7 @@ services:
       postgres:
         condition: service_healthy
 
-  # Placeholder until web/ exists. Once web/package.json is present it runs the Vite dev server.
+  # Runs the Vite dev server. The fallback covers a checkout that has no web/ folder.
   web:
     image: node:20-alpine
     working_dir: /app
