@@ -1,13 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720" role="img" aria-labelledby="t d">
   <title id="t">How Devin builds the kit and the tools</title>
-  <desc id="d">Swimlane. A human writes the spec, agent rules and playbook. Devin builds the core with the KYC backend and the web shell in parallel. A human reviews the core on the pull request and logs corrections before merging. A separate session then writes guardrail tests from the spec. Devin then builds feature flags from the playbook in a timed session, and a finding about the kit goes in as a separate fix. A human walks the code and measures. CI runs on every pull request and every session is logged.</desc>
+  <desc id="d">Swimlane. A human writes the spec, agent rules and playbook. Devin builds the core with the KYC backend and the web shell in two parallel sessions. A human reviews the core on the pull request and merges. A third session writes the guardrail tests and CI. A fourth session builds feature flags from the playbook, and a finding about the kit goes in as its own fix. A human measures the result. CI runs on every pull request.</desc>
   <defs>
     <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#5b6770"/></marker>
     <style>
-      text { font-family: Helvetica, Arial, sans-serif; fill: #1c2329; font-size: 13px; }
+      text { font-family: Helvetica, Arial, sans-serif; fill: #1c2329; font-size: 14px; }
       .b { font-weight: 700; }
-      .s { font-size: 12px; fill: #3b4650; }
-      .it { font-size: 11px; fill: #5b6770; font-style: italic; }
+      .s { font-size: 13px; fill: #3b4650; }
       .ln { font-size: 12px; fill: #5b6770; font-weight: 700; letter-spacing: .6px; }
       .lane { fill: #fbfcfd; stroke: #b8c0c7; stroke-width: 1.5; }
       .human { fill: #fff6e0; stroke: #b07a10; stroke-width: 2; }
@@ -18,80 +17,60 @@
     </style>
   </defs>
   <rect width="1280" height="720" fill="#ffffff"/>
-  <text class="b" x="24" y="34" style="font-size:16px">Humans write the rules and review the core. Devin builds in parallel, then repeats from a playbook.</text>
+  <text class="b" x="24" y="40" style="font-size:17px">Humans write the rules and review the core. Devin builds in parallel, then repeats from a playbook.</text>
 
-  <rect class="lane" x="16" y="60" width="1248" height="172" rx="10"/>
-  <text class="ln" x="28" y="80">HUMAN</text>
-  <rect class="lane" x="16" y="248" width="1248" height="274" rx="10"/>
-  <text class="ln" x="28" y="268">DEVIN SESSIONS</text>
+  <rect class="lane" x="16" y="70" width="1248" height="160" rx="10"/>
+  <text class="ln" x="28" y="92">HUMAN</text>
+  <rect class="lane" x="16" y="250" width="1248" height="270" rx="10"/>
+  <text class="ln" x="28" y="272">DEVIN</text>
 
   <!-- human lane -->
-  <rect class="human" x="30" y="92" width="200" height="118" rx="8"/>
-  <text class="b" x="130" y="118" text-anchor="middle">Write the inputs</text>
-  <text class="it" x="130" y="134" text-anchor="middle">by hand, before any session</text>
-  <text class="s" x="130" y="156" text-anchor="middle">SPEC.md · AGENTS.md</text>
-  <text class="s" x="130" y="172" text-anchor="middle">playbooks/new-tool.md</text>
-  <text class="s" x="130" y="188" text-anchor="middle">roles and seed users</text>
+  <rect class="human" x="40" y="110" width="200" height="84" rx="8"/>
+  <text class="b" x="140" y="146" text-anchor="middle">Write the inputs</text>
+  <text class="s" x="140" y="168" text-anchor="middle">spec, agent rules, playbook</text>
 
-  <rect class="gate" x="470" y="92" width="180" height="118" rx="8"/>
-  <text class="b" x="560" y="118" text-anchor="middle" style="fill:#b5392f">Review the core</text>
-  <text class="s" x="560" y="140" text-anchor="middle">question the pull request:</text>
-  <text class="s" x="560" y="156" text-anchor="middle">policy, approvals, audit, PII</text>
-  <text class="it" x="560" y="180" text-anchor="middle">corrections logged, then merge</text>
+  <rect class="gate" x="500" y="110" width="200" height="84" rx="8"/>
+  <text class="b" x="600" y="146" text-anchor="middle" style="fill:#b5392f">Review the core</text>
+  <text class="s" x="600" y="168" text-anchor="middle">correct on the PR, then merge</text>
 
-  <rect class="human" x="1080" y="92" width="170" height="118" rx="8"/>
-  <text class="b" x="1165" y="118" text-anchor="middle">Walk, run, measure</text>
-  <text class="s" x="1165" y="140" text-anchor="middle">did the diff stay</text>
-  <text class="s" x="1165" y="156" text-anchor="middle">inside tools/?</text>
-  <text class="it" x="1165" y="180" text-anchor="middle">minutes and corrections</text>
-  <text class="it" x="1165" y="194" text-anchor="middle">feed the cost model</text>
+  <rect class="human" x="1050" y="110" width="200" height="84" rx="8"/>
+  <text class="b" x="1150" y="146" text-anchor="middle">Measure</text>
+  <text class="s" x="1150" y="168" text-anchor="middle">time, usage, corrections</text>
 
   <!-- devin lane -->
-  <text class="it" x="350" y="286" text-anchor="middle">parallel</text>
-  <rect class="devin" x="270" y="294" width="160" height="86" rx="8"/>
-  <text class="b" x="350" y="316" text-anchor="middle">Session 1</text>
-  <text class="s" x="350" y="336" text-anchor="middle">core + KYC backend,</text>
-  <text class="s" x="350" y="352" text-anchor="middle">schema, seed, compose</text>
-  <rect class="devin" x="270" y="400" width="160" height="86" rx="8"/>
-  <text class="b" x="350" y="422" text-anchor="middle">Session 2</text>
-  <text class="s" x="350" y="442" text-anchor="middle">web shell + KYC pages,</text>
-  <text class="s" x="350" y="458" text-anchor="middle">approvals inbox, audit view</text>
+  <rect class="devin" x="270" y="290" width="190" height="84" rx="8"/>
+  <text class="b" x="365" y="326" text-anchor="middle">Session 1</text>
+  <text class="s" x="365" y="348" text-anchor="middle">core and KYC backend</text>
+  <rect class="devin" x="270" y="404" width="190" height="84" rx="8"/>
+  <text class="b" x="365" y="440" text-anchor="middle">Session 2</text>
+  <text class="s" x="365" y="462" text-anchor="middle">web shell and KYC pages</text>
 
-  <rect class="devin" x="690" y="294" width="160" height="86" rx="8"/>
-  <text class="b" x="770" y="316" text-anchor="middle">Session 3</text>
-  <text class="s" x="770" y="336" text-anchor="middle">guardrail tests G1 to G7</text>
-  <text class="s" x="770" y="352" text-anchor="middle">and CI</text>
-  <text class="it" x="770" y="372" text-anchor="middle">from the spec, not the code</text>
+  <rect class="devin" x="630" y="290" width="190" height="84" rx="8"/>
+  <text class="b" x="725" y="326" text-anchor="middle">Session 3</text>
+  <text class="s" x="725" y="348" text-anchor="middle">guardrail tests and CI</text>
 
-  <rect class="devin" x="890" y="320" width="180" height="104" rx="8"/>
-  <text class="b" x="980" y="344" text-anchor="middle">Session 4 · timed</text>
-  <text class="s" x="980" y="366" text-anchor="middle">feature flags from</text>
-  <text class="s" x="980" y="382" text-anchor="middle">the playbook</text>
-  <text class="it" x="980" y="406" text-anchor="middle">may not touch the core</text>
+  <rect class="devin" x="860" y="290" width="200" height="84" rx="8"/>
+  <text class="b" x="960" y="326" text-anchor="middle">Session 4</text>
+  <text class="s" x="960" y="348" text-anchor="middle">feature flags, from the playbook</text>
 
-  <rect class="devin" x="890" y="446" width="180" height="56" rx="8"/>
-  <text class="b" x="980" y="468" text-anchor="middle">Kit fix</text>
-  <text class="s" x="980" y="486" text-anchor="middle">a finding, as its own PR</text>
+  <rect class="devin" x="860" y="404" width="200" height="84" rx="8"/>
+  <text class="b" x="960" y="440" text-anchor="middle">Kit fix</text>
+  <text class="s" x="960" y="462" text-anchor="middle">a finding, as its own PR</text>
 
   <!-- connectors -->
-  <path class="tr" d="M205 210 V443"/>
-  <path class="ar" d="M205 337 H270"/>
-  <path class="ar" d="M205 443 H270"/>
-  <path class="tr" d="M430 443 H450 V337"/>
-  <path class="ar" d="M430 337 H450 V151 H470"/>
-  <path class="ar" d="M560 210 V337 H690"/>
-  <path class="ar" d="M850 337 H870 V372 H890"/>
-  <path class="ar" d="M980 424 V446"/>
-  <path class="ar" d="M1070 372 H1165 V210"/>
+  <path class="tr" d="M140 194 V446"/>
+  <path class="ar" d="M140 332 H270"/>
+  <path class="ar" d="M140 446 H270"/>
+  <path class="tr" d="M460 446 H480 V332"/>
+  <path class="ar" d="M460 332 H480 V152 H500"/>
+  <path class="ar" d="M600 194 V332 H630"/>
+  <path class="ar" d="M820 332 H860"/>
+  <path class="ar" d="M960 374 V404"/>
+  <path class="ar" d="M1060 332 H1150 V194"/>
 
-  <!-- bands -->
-  <rect class="gate" x="16" y="538" width="1248" height="72" rx="10"/>
-  <text class="b" x="32" y="562" style="fill:#b5392f">CI on every pull request. A red build blocks the merge, and no session merges its own work.</text>
-  <text class="s" x="32" y="582">policy on every route · role matrix · no self-approval · append-only audit · core and tool boundaries · no raw PII · tool namespaces · lint · type check</text>
-  <text class="it" x="32" y="600">The guardrail tests are generic, so session 4's tool is checked by tests it did not write and is not allowed to edit.</text>
-
-  <rect class="human" x="16" y="622" width="1248" height="72" rx="10"/>
-  <text class="b" x="32" y="646">Every session appends to BUILD_LOG.md, and failures stay in.</text>
-  <text class="s" x="32" y="666">start and end time · consumption · human corrections · defects found in review · whether the core had to change</text>
-  <text class="it" x="32" y="684">Session 4's numbers are the measured cost of "the next tool", which is what the economics rest on.</text>
+  <!-- CI -->
+  <rect class="gate" x="270" y="560" width="790" height="72" rx="8"/>
+  <text class="b" x="665" y="590" text-anchor="middle" style="fill:#b5392f">CI</text>
+  <text class="s" x="665" y="612" text-anchor="middle">runs on every pull request, and a red build blocks the merge</text>
+  <path class="ar" d="M665 560 V520"/>
 </svg>
