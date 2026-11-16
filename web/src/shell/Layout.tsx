@@ -1,12 +1,14 @@
 import type { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { AppShell, Badge, Group, NavLink, Select, Text, Title } from '@mantine/core';
+import { AppShell, Badge, Burger, Group, NavLink, Select, Text, Title } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
 import { useSession } from './session';
 import { tools } from './tools';
 
 export function Layout({ children }: { children: ReactNode }) {
   const { me, users, login, can } = useSession();
   const { pathname } = useLocation();
+  const [navOpened, { toggle: toggleNav, close: closeNav }] = useDisclosure(false);
 
   const items = [
     ...tools.filter((t) => can(t.navAction)).map((t) => ({ to: `/${t.id}`, label: t.title })),
@@ -15,10 +17,11 @@ export function Layout({ children }: { children: ReactNode }) {
   ];
 
   return (
-    <AppShell header={{ height: 56 }} navbar={{ width: 220, breakpoint: 'sm' }} padding="md">
+    <AppShell header={{ height: 56 }} navbar={{ width: 220, breakpoint: 'sm', collapsed: { mobile: !navOpened } }} padding="md">
       <AppShell.Header>
         <Group h="100%" px="md" justify="space-between">
           <Group>
+            <Burger opened={navOpened} onClick={toggleNav} hiddenFrom="sm" size="sm" aria-label="Toggle navigation" />
             <Title order={4}>Internal Tools Kit</Title>
             {import.meta.env.VITE_USE_MOCK === 'true' && <Badge color="yellow">Mock API</Badge>}
           </Group>
@@ -48,6 +51,7 @@ export function Layout({ children }: { children: ReactNode }) {
             to={item.to}
             label={item.label}
             active={pathname === item.to || pathname.startsWith(`${item.to}/`)}
+            onClick={closeNav}
           />
         ))}
       </AppShell.Navbar>
