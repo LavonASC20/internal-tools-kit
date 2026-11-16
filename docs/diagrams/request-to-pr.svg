@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720" role="img" aria-labelledby="t d">
+  <title id="t">From a plain-English request to a reviewed pull request</title>
+  <desc id="d">Swimlane, a design for the pilot that is not built. A person describes a tool in plain English. It becomes one ticket in Jira or Linear. An owner approves it with a label. A Devin automation starts a session, which follows the playbook and opens a pull request. CI and Devin Review run. An engineer reviews and merges. The requester is told.</desc>
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#5b6770"/></marker>
+    <style>
+      text { font-family: Helvetica, Arial, sans-serif; fill: #1c2329; font-size: 14px; }
+      .b { font-weight: 700; }
+      .s { font-size: 13px; fill: #3b4650; }
+      .ln { font-size: 12px; fill: #5b6770; font-weight: 700; letter-spacing: .6px; }
+      .lane { fill: #fbfcfd; stroke: #b8c0c7; stroke-width: 1.5; }
+      .human { fill: #fff6e0; stroke: #b07a10; stroke-width: 2; }
+      .devin { fill: #e8f1fb; stroke: #2f6db5; stroke-width: 2; }
+      .sys { fill: #f4f6f8; stroke: #5b6770; stroke-width: 1.5; }
+      .gate { fill: #fdeceb; stroke: #b5392f; stroke-width: 2; }
+      .ar { fill: none; stroke: #5b6770; stroke-width: 1.8; marker-end: url(#ah); }
+    </style>
+  </defs>
+  <rect width="1280" height="720" fill="#ffffff"/>
+  <text class="b" x="24" y="40" style="font-size:17px">Phase 2 · Design for the pilot, not built: a plain-English request becomes a reviewed pull request.</text>
+
+  <rect class="lane" x="16" y="130" width="1248" height="200" rx="10"/>
+  <text class="ln" x="28" y="152">PEOPLE</text>
+  <rect class="lane" x="16" y="360" width="1248" height="200" rx="10"/>
+  <text class="ln" x="1250" y="382" text-anchor="end">TRACKER, DEVIN AND CI</text>
+
+  <!-- people lane -->
+  <rect class="human" x="40" y="186" width="220" height="88" rx="8"/>
+  <text class="b" x="150" y="224" text-anchor="middle">1 · Request</text>
+  <text class="s" x="150" y="246" text-anchor="middle">anyone, in plain English</text>
+
+  <rect class="human" x="320" y="186" width="220" height="88" rx="8"/>
+  <text class="b" x="430" y="224" text-anchor="middle">3 · Triage</text>
+  <text class="s" x="430" y="246" text-anchor="middle">an owner approves with a label</text>
+
+  <rect class="gate" x="840" y="186" width="220" height="88" rx="8"/>
+  <text class="b" x="950" y="224" text-anchor="middle" style="fill:#b5392f">6 · Review</text>
+  <text class="s" x="950" y="246" text-anchor="middle">an engineer reviews and merges</text>
+
+  <rect class="human" x="1100" y="186" width="150" height="88" rx="8"/>
+  <text class="b" x="1175" y="224" text-anchor="middle">7 · Live</text>
+  <text class="s" x="1175" y="246" text-anchor="middle">requester is told</text>
+
+  <!-- systems lane -->
+  <rect class="sys" x="40" y="416" width="220" height="88" rx="8"/>
+  <text class="b" x="150" y="454" text-anchor="middle">2 · Ticket</text>
+  <text class="s" x="150" y="476" text-anchor="middle">one ticket in Jira or Linear</text>
+
+  <rect class="devin" x="320" y="416" width="220" height="88" rx="8"/>
+  <text class="b" x="430" y="454" text-anchor="middle">4 · Devin automation</text>
+  <text class="s" x="430" y="476" text-anchor="middle">the label starts a session</text>
+
+  <rect class="devin" x="580" y="416" width="220" height="88" rx="8"/>
+  <text class="b" x="690" y="454" text-anchor="middle">5 · Devin session</text>
+  <text class="s" x="690" y="476" text-anchor="middle">follows the playbook, opens a PR</text>
+
+  <rect class="gate" x="840" y="416" width="220" height="88" rx="8"/>
+  <text class="b" x="950" y="454" text-anchor="middle" style="fill:#b5392f">CI and Devin Review</text>
+  <text class="s" x="950" y="476" text-anchor="middle">seven guardrails on every PR</text>
+
+  <!-- connectors -->
+  <path class="ar" d="M150 274 V416"/>
+  <path class="ar" d="M260 460 H290 V230 H320"/>
+  <path class="ar" d="M430 274 V416"/>
+  <path class="ar" d="M540 460 H580"/>
+  <path class="ar" d="M800 460 H840"/>
+  <path class="ar" d="M950 416 V274"/>
+  <path class="ar" d="M1060 230 H1100"/>
+</svg>
