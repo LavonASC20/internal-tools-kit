@@ -7,7 +7,7 @@ One entry per Devin session. Failures stay in.
 | 1 Core and KYC backend | 2026-11-16 00:37 EST | 2026-11-16 01:36 EST | ~59 | not measured in-session | 9 (3 in round 1, 6 in round 2) | 1 (Devin Review) | n/a (G1 to G6 are session 3) |
 | 2 Web shell and KYC pages | 2026-11-16 00:37 EST | 2026-11-16 00:50 EST | ~13 | | 1 | 3 (Devin Review) | n/a (G1-G6 not written yet; web typecheck, build and vitest green) |
 | 3 Guardrail tests and CI | 2026-11-16 01:56 EST | 2026-11-16 02:09 EST | ~13 | not measured in-session | 0 | | yes (G1 to G7 green against main on first run; no findings) |
-| 4 Feature flags (playbook) | 2026-11-16 02:15 EST | 2026-11-16 02:20 EST | ~5 (timed build, to the stop); kit fix ~2 on its own line below | not measured in-session | 1 | | yes for backend (G1 to G7 green on first run with the tool); web vitest red until kit PR #5 |
+| 4 Feature flags (playbook) | 2026-11-16 02:15 EST | 2026-11-16 02:20 EST | ~5 (timed build, to the stop); kit fix ~2 on its own line below | not measured in-session | 1 | 2 (Devin Review on #6: 1 fixed, 1 escalated as a kit finding) | yes for backend (G1 to G7 green on first run with the tool); web vitest red until kit PR #5 |
 
 ## Notes per session
 
@@ -239,6 +239,15 @@ is stacked on PR #5.
 - My first kit commit made test 1 check every user's 403 or 200 against their own `approvals.read`.
   That is tool-independent but not what was asked. The second commit picks the user with no
   propose or approve action at runtime, as asked.
+
+**Found in review (Devin Review on #6, after the timed build):**
+- The web mock accepted a prod request reason longer than 500 characters, which the backend
+  rejects with a 422. Fixed: the mock now rejects it too, and the form caps the reason at 500.
+- Escalated as a kit finding, not patched: if a browser saved the mock's state before a tool was
+  added, that tool has no state and its requests get a 500 until the storage is cleared. The
+  cause is `load()` in `web/src/mock/index.ts`: it merges the saved state over a fresh one at the
+  top level only, so the saved `tools` object replaces the fresh one entirely. That code is
+  outside this tool's folders. It only affects `npm run dev:mock`.
 
 **Did the diff stay inside the tool's folders?** This PR: yes. Every changed path is under
 `backend/tools/feature_flags/` or `web/src/tools/feature_flags/`, plus this entry. Seed data is in
