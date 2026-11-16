@@ -1,8 +1,11 @@
 """Deny-by-default authorization. Every route declares exactly one action with `require`.
 
-Tools declare which roles hold which actions in their permissions.py. Core never names a role.
+Actions are namespaced: `<namespace>.<entity>.<verb>`. Each namespace has one owner (a tool, or
+core for `audit` and `approvals`), and only the owner may declare or grant actions in it. A tool
+declares its namespace and grants in its permissions.py.
 """
 
+import re
 from collections.abc import Callable, Iterable, Mapping
 from typing import Any
 
@@ -12,18 +15,39 @@ from fastapi.routing import APIRoute, APIRouter
 from starlette.concurrency import run_in_threadpool
 from starlette.responses import Response
 
-from core import auth
+from core import auth, masking
 from core.auth import User
 from core.errors import forbidden
 
 Grants = Mapping[str, Iterable[str]]
 
+CORE = "core"
+
+_NAMESPACE = re.compile(r"[a-z][a-z0-9_]*")
+
 _grants: dict[str, set[str]] = {}
 _derived: list[Callable[[], Grants]] = []
+_namespace_owners: dict[str, str] = {}
 
 
-def register_permissions(permissions: Grants) -> None:
-    """Merge a tool's {action: roles} declaration. Re-registering the same grants is a no-op."""
+def claim_namespace(owner: str, namespace: str) -> None:
+    """Reserve an action namespace for `owner`. Claiming another owner's namespace fails."""
+    if not _NAMESPACE.fullmatch(namespace):
+        raise RuntimeError(f"{owner}: invalid action namespace {namespace!r}")
+    current = _namespace_owners.setdefault(namespace, owner)
+    if current != owner:
+        raise RuntimeError(f"{owner}: action namespace {namespace!r} belongs to {current}")
+
+
+def register_permissions(owner: str, namespace: str, permissions: Grants) -> None:
+    """Merge `owner`'s {action: roles} grants. Every action must be in `owner`'s namespace.
+
+    Nothing is registered unless every action passes. Re-registering the same grants is a no-op.
+    """
+    claim_namespace(owner, namespace)
+    foreign = sorted(a for a in permissions if not a.startswith(f"{namespace}."))
+    if foreign:
+        raise RuntimeError(f"{owner} may only grant {namespace}.* actions, not {foreign}")
     for action, roles in permissions.items():
         _grants.setdefault(action, set()).update(roles)
 
@@ -127,7 +151,12 @@ def route_action(route: APIRoute) -> str | None:
 
 
 class PolicyRoute(APIRoute):
-    """Runs the declared action's check before FastAPI reads or validates the request body."""
+    """Runs the declared action's check before FastAPI reads or validates the request body, then
+    serializes the response with PII revealed only for the PII actions the caller holds."""
+
+    def __init__(self, path: str, endpoint: Callable[..., Any], **kwargs: Any) -> None:
+        super().__init__(path, endpoint, **kwargs)
+        masking.check_response_type(self.response_model, f"{', '.join(self.methods)} {path}")
 
     def get_route_handler(self) -> Callable[[Request], Any]:
         handler = super().get_route_handler()
@@ -136,8 +165,9 @@ class PolicyRoute(APIRoute):
             return handler
 
         async def guarded(request: Request) -> Response:
-            await run_in_threadpool(authorize, request, action)
-            return await handler(request)
+            user = await run_in_threadpool(authorize, request, action)
+            with masking.revealing(actions_for(user)):
+                return await handler(request)
 
         return guarded
 

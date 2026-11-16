@@ -13,6 +13,10 @@ from core.auth import User
 
 AUDIT_READ = "audit.read"
 
+# SPEC section 6 grants audit.read to auditor. The route is core's, so the grant lives here and
+# no tool can grant it.
+policy.register_permissions(policy.CORE, "audit", {AUDIT_READ: {"auditor"}})
+
 
 class AuditEvent(BaseModel):
     id: int

@@ -76,6 +76,7 @@ def _derived_grants() -> dict[str, set[str]]:
     return {APPROVALS_READ: read, APPROVALS_DECIDE: decide}
 
 
+policy.claim_namespace(policy.CORE, "approvals")
 policy.register_derived(_derived_grants)
 
 _COLUMNS = (

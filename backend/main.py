@@ -1,7 +1,7 @@
 """Composition root. Discovers every package under tools/ and mounts it next to the core routes.
 
 A tool package provides:
-  permissions.py  PERMISSIONS = {action: {roles}}
+  permissions.py  NAMESPACE = "<ns>"; PERMISSIONS = {"<ns>.<entity>.<verb>": {roles}}
   routes.py       router = core.policy.PolicyRouter(prefix="/<tool>")
   schema.sql      its tables (applied by db/seed.py)
   seed.py         optional seed(conn, rng) hook (called by db/seed.py)
@@ -33,7 +33,7 @@ def tool_names() -> list[str]:
 
 def load_tool(name: str) -> Tool:
     permissions = importlib.import_module(f"tools.{name}.permissions")
-    policy.register_permissions(permissions.PERMISSIONS)
+    policy.register_permissions(f"tools.{name}", permissions.NAMESPACE, permissions.PERMISSIONS)
     routes = importlib.import_module(f"tools.{name}.routes")
     router = getattr(routes, "router", None)
     if not isinstance(router, PolicyRouter):
