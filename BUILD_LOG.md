@@ -242,7 +242,9 @@ is stacked on PR #5.
 
 **Found in review (Devin Review on #6, after the timed build):**
 - The web mock accepted a prod request reason longer than 500 characters, which the backend
-  rejects with a 422. Fixed: the mock now rejects it too, and the form caps the reason at 500.
+  rejects with a 422. Fixed: the mock now rejects it too, counting code points as Pydantic does (a second review
+  caught my first fix counting UTF-16 units, so 500 emoji were refused; the form's `maxLength`
+  had the same problem and was removed).
 - Escalated as a kit finding, not patched: if a browser saved the mock's state before a tool was
   added, that tool has no state and its requests get a 500 until the storage is cleared. The
   cause is `load()` in `web/src/mock/index.ts`: it merges the saved state over a fresh one at the

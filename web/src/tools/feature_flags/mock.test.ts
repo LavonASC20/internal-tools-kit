@@ -98,5 +98,5 @@ test('a prod request needs a reason of at most 500 characters, as the backend', 
   for (const reason of ['  ', 'x'.repeat(501)]) {
     expect((await post(`/api/flags/${prod.id}/propose`, { enabled: !prod.enabled, reason })).status).toBe(422);
   }
-  expect((await post(`/api/flags/${prod.id}/propose`, { enabled: !prod.enabled, reason: 'x'.repeat(500) })).status).toBe(200);
+  expect((await post(`/api/flags/${prod.id}/propose`, { enabled: !prod.enabled, reason: '🚀'.repeat(500) })).status).toBe(200);
 });
