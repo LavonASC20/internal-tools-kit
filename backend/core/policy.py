@@ -192,7 +192,10 @@ class PolicyRoute(APIRoute):
 
     def __init__(self, path: str, endpoint: Callable[..., Any], **kwargs: Any) -> None:
         super().__init__(path, endpoint, **kwargs)
-        masking.check_response_type(self.response_model, f"{', '.join(self.methods)} {path}")
+        where = f"{', '.join(self.methods)} {path}"
+        masking.check_response_type(self.response_model, where)
+        if route_action(self) is not None and not masking.is_model_response(self.response_model):
+            raise TypeError(f"{where}: a route with an action must return a pydantic model")
 
     def get_route_handler(self) -> Callable[[Request], Any]:
         handler = super().get_route_handler()

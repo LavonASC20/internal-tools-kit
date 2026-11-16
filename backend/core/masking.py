@@ -5,10 +5,11 @@ serialized, unless the caller holds the model's `pii_action`. Tools never call m
 revealed (outside a request, or on a route with no action) every PII field is masked.
 """
 
-from collections.abc import Iterable, Iterator, Mapping
+import types
+from collections.abc import Iterable, Iterator, Mapping, Sequence
 from contextlib import contextmanager
 from contextvars import ContextVar
-from typing import Any, ClassVar, get_args
+from typing import Any, ClassVar, Union, get_args, get_origin
 
 from pydantic import BaseModel, Field, SerializerFunctionWrapHandler, model_serializer
 
@@ -99,6 +100,19 @@ def check_response_type(annotation: Any, where: str) -> None:
             walk(arg)
 
     walk(annotation)
+
+
+def is_model_response(annotation: Any) -> bool:
+    """True for a pydantic model, or a list/sequence/optional of models: shapes core can mask."""
+    origin, args = get_origin(annotation), get_args(annotation)
+    if origin is None:
+        return isinstance(annotation, type) and issubclass(annotation, BaseModel)
+    if origin in (Union, types.UnionType):
+        models = [a for a in args if a is not type(None)]
+        return bool(models) and all(is_model_response(a) for a in models)
+    if isinstance(origin, type) and issubclass(origin, Sequence) and not issubclass(origin, str):
+        return bool(args) and all(is_model_response(a) for a in args if a is not Ellipsis)
+    return False
 
 
 def pii_field_names() -> frozenset[str]:
