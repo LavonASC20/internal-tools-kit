@@ -7,7 +7,7 @@ One entry per Devin session. Failures stay in.
 | 1 Core and KYC backend | 2026-11-16 00:37 EST | 2026-11-16 01:36 EST | ~59 | not measured in-session | 9 (3 in round 1, 6 in round 2) | 1 (Devin Review) | n/a (G1 to G6 are session 3) |
 | 2 Web shell and KYC pages | 2026-11-16 00:37 EST | 2026-11-16 00:50 EST | ~13 | | 1 | 3 (Devin Review) | n/a (G1-G6 not written yet; web typecheck, build and vitest green) |
 | 3 Guardrail tests and CI | 2026-11-16 01:56 EST | 2026-11-16 02:09 EST | ~13 | not measured in-session | 0 | | yes (G1 to G7 green against main on first run; no findings) |
-| 4 Feature flags (playbook) | | | | | | | |
+| 4 Feature flags (playbook) | 2026-11-16 02:15 EST | 2026-11-16 02:20 EST | ~5 (timed build, to the stop); kit fix ~2 on its own line below | not measured in-session | 1 | 2 (Devin Review on #6: 1 fixed, 1 escalated as a kit finding) | yes for backend (G1 to G7 green on first run with the tool); web vitest red until kit PR #5 |
 
 ## Notes per session
 
@@ -177,4 +177,85 @@ open list still applies.
 
 ### Session 4
 
-Did the diff stay inside the tool's folders? Did the core need to change?
+Times are from the VM clock (`date -u`).
+- Timed build: start 07:15:13 UTC; end 07:20:17 UTC, when I stopped on the web test finding below
+  (~5 min).
+- Kit fix (PR #5, not part of the timed build): 07:24:00 UTC to about 07:25:30 UTC, when PR #5 was
+  opened (~2 min).
+
+**Asked:** follow `playbooks/new-tool.md` to build the feature flags tool from SPEC section 7. Roles
+are `engineer`, `eng_lead` and `auditor`; seed users Eli and Lee already exist. The whole diff stays
+inside `backend/tools/feature_flags`, `web/src/tools/feature_flags`, seed data and this entry. Stop
+and report if the core, the guardrail tests or the shell would need to change. Run G1 to G7 before
+opening the PR.
+
+**Delivered:**
+- `backend/tools/feature_flags/`, namespace `flags`:
+  - `flags.flag.read` (engineer, eng_lead, auditor), `flags.flag.toggle` (engineer, eng_lead),
+    `flags.prod.propose` (engineer, eng_lead), `flags.prod.approve` (eng_lead).
+  - Dev and staging toggles are direct, audited as `flags.flag.toggle`.
+  - A prod toggle always goes through `core.approvals`. Even Lee cannot toggle prod directly. The
+    flag stays unchanged with a `pending_request_id` until another eng_lead approves
+    (`flags.prod.apply`) or rejects (`flags.prod.return`).
+  - Self-approval is refused by the core.
+  - Seed data is six synthetic `demo_` flags per environment in the tool's own `seed.py` hook.
+    `db/seed.py` is unchanged. No PII.
+  - 11 tool tests.
+- `web/src/tools/feature_flags/`:
+  - List page with an environment filter; detail page with a direct toggle, or a prod proposal
+    form gated by `Can`.
+  - Mock handlers and 9 web tests.
+- Checks: `make lint` green; `make test` 254 passed (main: 158). That includes G1 to G7: 208 cases,
+  unmodified, which picked up the new routes and roles at runtime. Web typecheck, build and vitest
+  (26 tests) green on top of PR #5.
+
+**Finding against the kit (PR #5, separate from this tool):** adding the tool broke two web tests
+outside its folders. Both hardcoded which tools and grants existed when they were written:
+- `web/src/mock/mock.test.ts` expected Eli to get 403 on `/api/approvals`. Proposing a prod toggle
+  now gives him the derived `approvals.read`.
+- `web/src/tools/kyc_review/mock.test.ts` asserted Audrey's full action list. She now also holds
+  `flags.flag.read`.
+
+I stopped and reported instead of working around it. The only in-folder workarounds would have
+broken the request: dropping auditor read access, or not letting engineers propose prod toggles.
+PR #5 makes both tests independent of which tools are installed:
+- Test 1 picks, at runtime, a user who holds no propose or approve action of any installed tool's
+  approval kinds.
+- Test 2 asserts only on `kyc.*` actions.
+
+A throwaway third tool mock (not committed) breaks the old tests and passes the new ones. This PR
+is stacked on PR #5.
+
+**Got wrong along the way:**
+- First `make lint` on the tool: 2 lines over 100 characters (`service.py`, `test_flag_flow.py`).
+  Fixed with `ruff format`.
+- First web vitest run with the tool: 2 failures in the existing tests above. That was the finding,
+  not a tool bug.
+- My first suggested fix was to swap in another user ("Ana" for test 1). That was wrong twice:
+  - Ana proposes KYC decisions, so she holds `approvals.read` too.
+  - Swapping users only moves the hardcoding.
+
+  Corrected by the user: make both tests independent of the installed tools.
+- My first kit commit made test 1 check every user's 403 or 200 against their own `approvals.read`.
+  That is tool-independent but not what was asked. The second commit picks the user with no
+  propose or approve action at runtime, as asked.
+
+**Found in review (Devin Review on #6, after the timed build):**
+- The web mock accepted a prod request reason longer than 500 characters, which the backend
+  rejects with a 422. Fixed: the mock now rejects it too, counting code points as Pydantic does (a second review
+  caught my first fix counting UTF-16 units, so 500 emoji were refused; the form's `maxLength`
+  had the same problem and was removed).
+- Escalated as a kit finding, not patched: if a browser saved the mock's state before a tool was
+  added, that tool has no state and its requests get a 500 until the storage is cleared. The
+  cause is `load()` in `web/src/mock/index.ts`: it merges the saved state over a fresh one at the
+  top level only, so the saved `tools` object replaces the fresh one entirely. That code is
+  outside this tool's folders. It only affects `npm run dev:mock`.
+
+**Did the diff stay inside the tool's folders?** This PR: yes. Every changed path is under
+`backend/tools/feature_flags/` or `web/src/tools/feature_flags/`, plus this entry. Seed data is in
+the tool's own `seed.py`. Adding the tool did need a change outside them, though: the two web tests
+in PR #5, which went in as a separate kit fix.
+
+**Did the core need to change?** No. `backend/core/`, `backend/tests/` (G1 to G7), `db/`,
+`web/src/shell/` and `SPEC.md` are untouched. Policy, audit, approvals, self-approval and runtime
+discovery covered the tool as they were. The only kit change was in the two web tests (PR #5).
