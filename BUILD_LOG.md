@@ -5,7 +5,7 @@ One entry per Devin session. Failures stay in.
 | Session | Start | End | Minutes | Consumption | Human corrections | Defects found in review | Guardrails green on first PR |
 |---|---|---|---|---|---|---|---|
 | 1 Core and KYC backend | 2026-11-16 00:37 EST | 2026-11-16 01:36 EST | ~59 | not measured in-session | 9 (3 in round 1, 6 in round 2) | 1 (Devin Review) | n/a (G1 to G6 are session 3) |
-| 2 Web shell and KYC pages | | | | | | | |
+| 2 Web shell and KYC pages | 2026-11-16 00:37 EST | 2026-11-16 00:45 EST | ~8 | | 0 | | n/a (G1-G6 not written yet; web typecheck, build and 12 vitest tests green) |
 | 3 Guardrail tests and CI | | | | | | | |
 | 4 Feature flags (playbook) | | | | | | | |
 
@@ -96,6 +96,11 @@ real. Per fix, from commit timestamps: F1 under 1 min, F2 under 1 min, F3 under 
   `backend/core/tests/` and import no tool; the KYC folder keeps only KYC assertions.
 
 ### Session 2
+
+- Asked: web shell (user picker login, nav from discovered tools, approvals inbox, audit view) and `tools/kyc_review` pages (case queue, case detail with propose form), coded against SPEC sections 5 and 6 with a switchable mock, touching only `web/`.
+- Delivered: Vite + React + TS + Mantine app in `web/`. Tools are discovered with `import.meta.glob('../tools/*/index.tsx')`. Controls render only when `GET /api/me` lists the action. Mock layer (`npm run dev:mock`, `VITE_USE_MOCK=true`) patches `fetch` for `/api/*`, with per-tool handlers discovered by glob from `tools/<name>/mock.ts`; it is excluded from normal builds. Tests cover discovery, control gating, masking display and the mock KYC flow including `self_approval`. Also added `web/Dockerfile` for compose to use; compose wiring is session 1's.
+- Assumptions the backend must match or the web must adjust (spec does not pin these): `/api/me` returns `actions` (`allowed_actions` also accepted); approval request `action` is the action the decider needs (`kyc.decision.approve`); approve/reject body is `{comment}`; list routes return an array or `{items}`; the action guarding `GET /api/approvals` is unspecified, so its nav entry is always shown and a 403 is displayed.
+- Got wrong: first typecheck failed (`React.FormEvent` without import; `process` in `vite.config.ts` without node types). My first browser check failed because a stale tab from an earlier run rewrote the mock's `localStorage` state; the mock shares state across tabs through storage, which is a known limit of the mock, not the app.
 
 ### Session 3
 
