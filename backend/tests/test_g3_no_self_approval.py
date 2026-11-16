@@ -1,5 +1,7 @@
 """G3: a proposer cannot decide their own request, through the API or by direct insert."""
 
+import dataclasses
+
 import pytest
 from fastapi import FastAPI
 from sqlalchemy import text
@@ -20,6 +22,10 @@ def _proposer_and_decider_roles(kind: ApprovalKind) -> set[str]:
     if not proposers or not deciders:
         pytest.fail(f"{kind.action}: no role can propose or decide it")
     return {sorted(proposers)[0], sorted(deciders)[0]}
+
+
+def _no_op(*_: object) -> None:
+    return None
 
 
 def _open_request(kind: ApprovalKind, user_id: str, roles: set[str]) -> int:
@@ -43,8 +49,11 @@ def _request_row(request_id: int) -> tuple[str, str | None]:
 @pytest.mark.parametrize("decision", ["approve", "reject"])
 @pytest.mark.parametrize("kind", KINDS, ids=[k.action for k in KINDS])
 def test_proposer_holding_both_actions_cannot_decide_via_api(
-    kind: ApprovalKind, decision: str, app: FastAPI
+    kind: ApprovalKind, decision: str, app: FastAPI, policy_sandbox: None
 ) -> None:
+    # The request has an empty payload, so the tool's handlers are swapped for no-ops: a broken
+    # rule then shows up as an accepted decision rather than as a tool payload error.
+    approvals._kinds[kind.action] = dataclasses.replace(kind, on_approve=_no_op, on_reject=_no_op)
     roles = _proposer_and_decider_roles(kind)
     user_id = add_user(roles, "g3_both")
     request_id = _open_request(kind, user_id, roles)
