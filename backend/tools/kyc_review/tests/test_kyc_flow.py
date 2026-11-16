@@ -1,4 +1,4 @@
-"""KYC-specific behavior. Generic guardrails (G1 to G6) live in backend/tests/."""
+"""KYC-specific behavior. Generic guardrails (G1 to G7) live in backend/tests/."""
 
 from collections.abc import Callable
 
