@@ -19,19 +19,19 @@ export function Layout({ children }: { children: ReactNode }) {
   return (
     <AppShell header={{ height: 56 }} navbar={{ width: 220, breakpoint: 'sm', collapsed: { mobile: !navOpened } }} padding="md">
       <AppShell.Header>
-        <Group h="100%" px="md" justify="space-between">
-          <Group>
+        <Group h="100%" px="md" justify="space-between" wrap="nowrap">
+          <Group wrap="nowrap">
             <Burger opened={navOpened} onClick={toggleNav} hiddenFrom="sm" size="sm" aria-label="Toggle navigation" />
             <Title order={4}>Internal Tools Kit</Title>
             {import.meta.env.VITE_USE_MOCK === 'true' && <Badge color="yellow">Mock API</Badge>}
           </Group>
-          <Group>
-            <Text size="sm" c="dimmed">
+          <Group wrap="nowrap">
+            <Text size="sm" c="dimmed" visibleFrom="sm">
               {me?.roles.join(', ')}
             </Text>
             <Select
               aria-label="Switch user"
-              w={180}
+              w={{ base: 120, sm: 180 }}
               allowDeselect={false}
               value={me ? String(me.id) : null}
               data={users.map((u) => ({ value: String(u.id), label: u.name }))}
