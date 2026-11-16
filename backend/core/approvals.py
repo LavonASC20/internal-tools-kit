@@ -56,9 +56,22 @@ _kinds: dict[str, ApprovalKind] = {}
 
 
 def register(kind: ApprovalKind) -> None:
+    """Register a tool's approval kind. Both actions must be declared in one namespace owned by
+    `tools.<kind.tool>`. An action has one kind: registering a different one fails."""
+    owner = f"tools.{kind.tool}"
+    namespaces = {a.split(".", 1)[0] for a in (kind.action, kind.propose_action)}
+    if len(namespaces) != 1 or policy.namespace_owner(namespaces.pop()) != owner:
+        raise RuntimeError(f"{owner}: approval actions must be in its own namespace")
+    undeclared = [a for a in (kind.action, kind.propose_action) if not policy.is_declared(a)]
+    if undeclared:
+        raise RuntimeError(f"{owner}: approval actions {undeclared} are not declared")
     existing = _kinds.get(kind.action)
-    if existing is not None and existing.tool != kind.tool:
-        raise RuntimeError(f"{kind.action} is already registered by {existing.tool}")
+    if existing is not None:
+        if existing != kind:
+            raise RuntimeError(f"{kind.action} already has an approval kind ({existing.tool})")
+        return
+    if policy.is_frozen():
+        raise RuntimeError(f"{owner}: policy is frozen; cannot register {kind.action}")
     _kinds[kind.action] = kind
 
 

@@ -59,6 +59,11 @@ def namespace_owner(namespace: str) -> str | None:
     return _namespace_owners.get(namespace)
 
 
+def is_declared(action: str) -> bool:
+    """True if `action` appears in its namespace's registered grants."""
+    return action in _registered.get(action.split(".", 1)[0], {})
+
+
 def register_permissions(owner: str, namespace: str, permissions: Grants) -> None:
     """Register `owner`'s {action: roles} grants. Every action must be in `owner`'s namespace.
 
