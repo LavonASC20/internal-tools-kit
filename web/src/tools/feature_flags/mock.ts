@@ -51,6 +51,9 @@ function requireChange(f: Flag, enabled: boolean) {
 const entity = (f: Flag) => `feature_flag:${f.id}`;
 const detail = (f: Flag, enabled: boolean) => ({ key: f.key, environment: f.environment, from: f.enabled, to: enabled });
 
+// Mirrors ProposeProdToggle.reason in backend/tools/feature_flags/schemas.py.
+const REASON_MAX = 500;
+
 const flagsMock: MockTool<State> = {
   tool: 'feature_flags',
   permissions: {
@@ -99,6 +102,9 @@ const flagsMock: MockTool<State> = {
         const reason = (body as { reason?: unknown }).reason;
         if (typeof reason !== 'string' || !reason.trim()) {
           throw new MockHttpError(422, 'validation_error', 'reason is required');
+        }
+        if (reason.trim().length > REASON_MAX) {
+          throw new MockHttpError(422, 'validation_error', `reason is at most ${REASON_MAX} characters`);
         }
         const f = findFlag(ctx.state, id);
         if (f.environment !== 'prod') {

@@ -130,6 +130,7 @@ function ProposeForm({ flag, onDone }: { flag: Flag; onDone: () => void }) {
             required
             autosize
             minRows={2}
+            maxLength={500}
             value={reason}
             onChange={(e) => setReason(e.currentTarget.value)}
           />

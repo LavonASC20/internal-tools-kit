@@ -91,3 +91,12 @@ test('rejecting a prod request leaves the flag unchanged and releases it', async
   expect((await post(`/api/approvals/${id}/reject`)).status).toBe(200);
   expect(await flag('demo_sample_widget', 'prod')).toEqual(prod);
 });
+
+test('a prod request needs a reason of at most 500 characters, as the backend', async () => {
+  await loginAs('eli');
+  const prod = await flag('demo_sample_widget', 'prod');
+  for (const reason of ['  ', 'x'.repeat(501)]) {
+    expect((await post(`/api/flags/${prod.id}/propose`, { enabled: !prod.enabled, reason })).status).toBe(422);
+  }
+  expect((await post(`/api/flags/${prod.id}/propose`, { enabled: !prod.enabled, reason: 'x'.repeat(500) })).status).toBe(200);
+});
