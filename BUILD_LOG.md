@@ -13,6 +13,8 @@ One entry per Devin session. Failures stay in.
 
 ### Session 1
 
+Times are from the VM clock (`date -u`) at session start and at commit.
+
 **Asked:** core (auth, policy, approvals, audit, masking, db), the KYC review tool, a `main.py`
 that discovers tools, `db/schema.sql` + `db/seed.py`, docker compose with a web placeholder,
 Makefile targets, README. No guardrail tests; no files under `web/src`.
