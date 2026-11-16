@@ -16,10 +16,15 @@ test('/api/me lists only the actions the role holds', async () => {
 });
 
 test('approvals list requires approvals.read', async () => {
-  for (const user of ['audrey', 'eli']) {
+  let denied = 0;
+  for (const user of ['ana', 'sam', 'dana', 'audrey', 'eli', 'lee']) {
     await loginAs(user);
-    expect((await fetch('/api/approvals')).status).toBe(403);
+    const { actions } = await (await fetch('/api/me')).json();
+    const allowed = actions.includes('approvals.read');
+    expect((await fetch('/api/approvals')).status).toBe(allowed ? 200 : 403);
+    if (!allowed) denied++;
   }
+  expect(denied).toBeGreaterThan(0);
 });
 
 test('audit requires audit.read', async () => {
