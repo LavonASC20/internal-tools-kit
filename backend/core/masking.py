@@ -5,7 +5,7 @@ serialized, unless the caller holds the model's `pii_action`. Tools never call m
 revealed (outside a request, or on a route with no action) every PII field is masked.
 """
 
-from collections.abc import Iterable, Iterator
+from collections.abc import Iterable, Iterator, Mapping
 from contextlib import contextmanager
 from contextvars import ContextVar
 from typing import Any, ClassVar, get_args
@@ -99,3 +99,17 @@ def check_response_type(annotation: Any, where: str) -> None:
 def pii_field_names() -> frozenset[str]:
     """Every field name marked PII on any loaded model."""
     return frozenset(_pii_field_names)
+
+
+def pii_keys(value: Any) -> set[str]:
+    """Keys anywhere in a JSON-like value that are PII field names. Stored JSON must have none."""
+    found: set[str] = set()
+    if isinstance(value, Mapping):
+        for key, item in value.items():
+            if key in _pii_field_names:
+                found.add(str(key))
+            found |= pii_keys(item)
+    elif isinstance(value, list | tuple):
+        for item in value:
+            found |= pii_keys(item)
+    return found

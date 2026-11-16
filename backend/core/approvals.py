@@ -14,7 +14,7 @@ from typing import Any, Literal
 from pydantic import BaseModel
 from sqlalchemy import Connection, text
 
-from core import audit, policy
+from core import audit, masking, policy
 from core.auth import User
 from core.errors import AppError, forbidden, invalid_state, not_found, self_approval
 
@@ -105,12 +105,18 @@ def _to_request(row: Any) -> ApprovalRequest:
 def create(
     conn: Connection, *, user: User, action: str, entity: str, payload: dict[str, Any]
 ) -> ApprovalRequest:
-    """Open a pending request in the caller's transaction. The caller audits the proposal."""
+    """Open a pending request in the caller's transaction. The caller audits the proposal.
+
+    The payload is stored and shown to every approvals reader unmasked, so it must not contain PII.
+    """
     kind = _kinds.get(action)
     if kind is None:
         raise RuntimeError(f"no approval kind registered for {action}")
     if not policy.allows(user, kind.propose_action):
         raise forbidden(f"You do not have permission for {kind.propose_action}")
+    leaked = masking.pii_keys(payload)
+    if leaked:
+        raise ValueError(f"approval payload must not contain PII fields: {sorted(leaked)}")
     row = conn.execute(
         text(
             "INSERT INTO approval_requests (tool, action, entity, payload, proposed_by) "

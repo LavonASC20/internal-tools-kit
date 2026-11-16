@@ -29,19 +29,6 @@ class AuditEvent(BaseModel):
     detail: dict[str, Any]
 
 
-def _pii_keys(detail: Any) -> set[str]:
-    found: set[str] = set()
-    if isinstance(detail, Mapping):
-        for key, value in detail.items():
-            if key in masking.pii_field_names():
-                found.add(str(key))
-            found |= _pii_keys(value)
-    elif isinstance(detail, list):
-        for item in detail:
-            found |= _pii_keys(item)
-    return found
-
-
 def record(
     conn: Connection,
     actor: User,
@@ -58,7 +45,7 @@ def record(
     actor's roles if none do. Detail must not contain PII fields.
     """
     payload = dict(detail or {})
-    leaked = _pii_keys(payload)
+    leaked = masking.pii_keys(payload)
     if leaked:
         raise ValueError(f"audit detail must not contain PII fields: {sorted(leaked)}")
     roles = policy.granting_roles(actor, authorized_by or action) or sorted(actor.roles)
