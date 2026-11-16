@@ -64,6 +64,37 @@ Three questions, three misses:
 Also during review, Devin Review found that a session cookie with a non-ASCII signature made
 `hmac.compare_digest` raise (500 instead of 401). Fixed by comparing bytes.
 
+**Second review round, corrected by the human** (questions 01:18, fixes 01:26 to 01:27 EST,
+2026-11-16). The VM clock and GitHub's `Date` header agree, but the fix times look too short to be
+real. Per fix, from commit timestamps: F1 under 1 min, F2 under 1 min, F3 under 1 min, F4a under
+1 min, F4b under 1 min. What I got wrong in the first round of fixes:
+- *F1, the owner check could be spoofed.* `register_permissions` trusted an `owner` string from
+  the caller, so `("tools.kyc_review", "kyc", {"kyc.pii.read": {"engineer"}})` passed. My test only
+  tried the wrong owner and the wrong namespace. Fix: each namespace's grants are registered once
+  (identical repeats are a no-op, anything else fails), and `create_app` freezes policy.
+- *F2, approval kinds were outside the namespace rule.* `approvals.register` checked neither
+  `action` nor `propose_action`, and `ApprovalKind.tool` is self-reported: a kind with a foreign
+  `propose_action` was accepted, and a spoofed `tool` silently replaced another tool's kind. Fix:
+  both actions must be declared in one namespace owned by `tools.<kind.tool>`; one kind per action;
+  none after freeze.
+- *F3, approval payloads could store raw PII.* Masking runs on every serialization, so
+  `case.model_dump()` in a payload stored raw PII when the proposer held the PII action (and `***`
+  otherwise), and `GET /api/approvals` returns the payload unmasked. Audit detail had a PII key
+  check; approval payloads did not. Fix: `approvals.create` refuses PII keys (shared
+  `masking.pii_keys`).
+- *F4a/F4b, masking could still be switched off.* A `PiiModel` subclass with its own
+  `model_serializer` served raw PII, and so did a route returning a hand-built `dict`, `dict(model)`
+  or a `Response`; `check_response_type` caught only `pii_field()` on a plain `BaseModel`, and it
+  had no test. Fix: a `PiiModel` subclass may not define a `model_serializer`, and a route with an
+  action must return a pydantic model (or list/optional of one). Still open: a handler annotated
+  with a model that returns a `Response` object, PII inside free-form `dict`/`Any` model fields,
+  `computed_field`, a forgotten `pii_field()`, or a wrong `pii_action`.
+- *`auditor` in core was not put to the human as a trade.* Moving `audit.read` into core made core
+  name a role, against SPEC section 5; I mentioned it but offered no alternatives. Kept, by the
+  human's decision, and listed under Deviations.
+- *Core tests were in the KYC tool's test folder.* Core-mechanism tests now live in
+  `backend/core/tests/` and import no tool; the KYC folder keeps only KYC assertions.
+
 ### Session 2
 
 ### Session 3

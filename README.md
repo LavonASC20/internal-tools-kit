@@ -100,12 +100,17 @@ db/seed.py               applies core + tool schema.sql, seeds users, calls each
 To add a tool, follow [playbooks/new-tool.md](playbooks/new-tool.md). No file outside the tool's
 folder needs to change: `main.py` and `db/seed.py` find it by scanning `backend/tools/`.
 
-Two rules core enforces at startup:
+Rules core enforces at startup:
 
 - **Action namespaces.** A tool's `permissions.py` sets `NAMESPACE` (KYC uses `kyc`) and may only
   grant actions under it. Claiming another tool's namespace, or granting `audit.*` or
-  `approvals.*` (owned by core), fails when the app starts.
+  `approvals.*` (owned by core), fails when the app starts. Each namespace's grants are registered
+  once, and `create_app` freezes policy, so nothing can add or change a grant afterwards.
+- **Approval kinds.** `approvals.register` accepts a kind only if its `action` and
+  `propose_action` are declared actions in the registering tool's own namespace. Each action has
+  one kind. Approval payloads must not contain PII field names: they are stored and shown unmasked.
 - **PII masking.** Mark fields with `pii_field()` on a `PiiModel` and set `pii_action`. Core masks
   those fields whenever the model is serialized, unless the caller holds `pii_action`. Tools never
-  call masking. A response model that uses `pii_field()` without being a `PiiModel` is refused
-  when the route is created.
+  call masking, and a `PiiModel` subclass may not define its own `model_serializer`. Every route
+  that declares an action must return a pydantic model (or a list/optional of one), and a response
+  model that uses `pii_field()` without being a `PiiModel` is refused when the route is created.
