@@ -38,7 +38,7 @@ services:
     image: node:20-alpine
     working_dir: /app
     environment:
-      BACKEND_URL: http://backend:8000
+      API_TARGET: http://backend:8000
     command: >
       sh -c "if [ -f package.json ]; then npm install && npm run dev -- --host 0.0.0.0 --port 5173;
       else echo 'web/ is not built yet; the backend is at http://localhost:8000/docs'; tail -f /dev/null; fi"
