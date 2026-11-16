@@ -74,7 +74,7 @@ def read_session(value: str, now: float | None = None) -> str | None:
         expires_at = int(expires)
     except ValueError:
         return None
-    if not hmac.compare_digest(signature, _sign(f"{user_id}:{expires}")):
+    if not hmac.compare_digest(signature.encode(), _sign(f"{user_id}:{expires}").encode()):
         return None
     if expires_at < (now if now is not None else time.time()):
         return None
