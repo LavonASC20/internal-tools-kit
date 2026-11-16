@@ -24,7 +24,8 @@ export function App() {
 
   return (
     <Layout>
-      <Routes>
+      {/* Remount pages on user switch so no data fetched for the previous user stays on screen. */}
+      <Routes key={String(me.id)}>
         <Route path="/" element={<Navigate to={home ? `/${home.id}` : '/approvals'} replace />} />
         <Route path="/approvals" element={<ApprovalsPage />} />
         <Route path="/audit" element={<AuditPage />} />
