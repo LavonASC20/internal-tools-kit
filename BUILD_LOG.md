@@ -6,7 +6,7 @@ One entry per Devin session. Failures stay in.
 |---|---|---|---|---|---|---|---|
 | 1 Core and KYC backend | 2026-11-16 00:37 EST | 2026-11-16 01:36 EST | ~59 | not measured in-session | 9 (3 in round 1, 6 in round 2) | 1 (Devin Review) | n/a (G1 to G6 are session 3) |
 | 2 Web shell and KYC pages | 2026-11-16 00:37 EST | 2026-11-16 00:50 EST | ~13 | | 1 | 3 (Devin Review) | n/a (G1-G6 not written yet; web typecheck, build and vitest green) |
-| 3 Guardrail tests and CI | | | | | | | |
+| 3 Guardrail tests and CI | 2026-11-16 01:56 EST | 2026-11-16 02:09 EST | ~13 | not measured in-session | 0 | | yes (G1 to G7 green against main on first run; no findings) |
 | 4 Feature flags (playbook) | | | | | | | |
 
 ## Notes per session
@@ -120,6 +120,60 @@ real. Per fix, from commit timestamps: F1 under 1 min, F2 under 1 min, F3 under 
 - After both PRs merged: ran the SPEC section 2 flow in the browser on merged main against `docker compose up` + `make seed`. Dana proposes on flagged case 3; her self-approval shows the server's `self_approval` refusal; Ana sees no Decide; Sam approves; the case is cleared; Audrey sees masked PII and three audit rows (propose, approve, apply) with no raw PII. Noted, not changed: a refused self-approval writes no audit row, because only state changes are audited. The compose web container writes a root-owned `web/.vite/` cache that git did not ignore, so I added it to `web/.gitignore`.
 
 ### Session 3
+
+Times are from the VM clock (`date -u`): start 06:56:14 UTC, end 07:09:51 UTC.
+
+**Asked:** G1 to G7 from SPEC section 9 in `backend/tests/`, written from the spec and discovering
+routes, roles, actions, tools and PII fields at runtime; a GitHub Actions workflow (Postgres
+service, `make lint`, `make test`, web typecheck, build and tests); proof that each guardrail can
+fail, with the failing output in the PR and the breakage not committed; findings fixed in
+separate commits.
+
+**Delivered:**
+- `backend/tests/discover.py` reads everything from the running app: routes from `main.app`, the
+  action from each route's `ActionCheck` dependency, tools from `tools/`, roles from the grant
+  table, approval kinds from `core.approvals`, PII fields and their `pii_action` from the
+  response models of mounted routes, and request bodies from each route's JSON schema. Nothing
+  names KYC; a new tool is picked up without editing the tests.
+- `backend/tests/conftest.py` adds a `policy_sandbox` (copy, unfreeze, restore, same pattern as
+  `backend/core/tests/conftest.py`), a `throwaway_tool` that writes a real tool package into a temp
+  dir on `tools.__path__`, and users with any role combination. Shared database fixtures stay in
+  `backend/conftest.py`; nothing in `backend/core/tests/` was moved or duplicated.
+- G1 to G7, 123 test cases. Readings stricter than the spec text, listed in the PR under
+  Deviations: the G1 exemption covers only core routes at those paths (a tool route under
+  `/api/auth/` is not exempt) and raw Starlette routes fail; G2 sends a malformed body so a route
+  that validates before authorizing fails, and checks anonymous callers get 401; G4 also tries
+  TRUNCATE.
+- `.github/workflows/ci.yml`: backend job with `postgres:16-alpine`, `make install`, `make lint`,
+  `make test`; web job with `npm ci`, typecheck, build, test.
+- 17 temporary breakages (throwaway tools and temporary core/schema edits), at least two per
+  guardrail. Each one fails its guardrail; output is in the PR. A script applied each one, ran the
+  test file and reverted it, so none was committed.
+
+**Findings against main:** none. All seven guardrails passed on main the first time they ran.
+
+**Not covered (limits of runtime discovery):** G6 learns what counts as PII from `pii_field()`
+markings. It catches a route that leaks a known PII value through an unmarked field, but not a
+new tool that forgets to mark its own PII, or marks it with the wrong `pii_action`. Session 1's
+open list still applies.
+
+**Got wrong along the way:**
+- First `make test PYTHON=.venv/bin/python` failed with `.venv/bin/python: not found`, because the
+  Makefile `cd`s into `backend/`. The interpreter path has to be absolute.
+- The G5 runtime probe imported `tools.kyc_review.routes` on its own, which skips
+  `main.load_tool`'s order (permissions first). The KYC service then failed to register its
+  approval kind. That was a false failure in my test, not a boundary violation. The probe now
+  registers the tool's permissions first, the way `main` does.
+- First `make lint` on the new files: 6 lines over 100 characters, 6 files not formatted, and 1
+  mypy error (`str | None` passed as `str` in G7).
+- My breakage script reverted with `git checkout -- backend db`. That wiped an uncommitted edit to
+  the G3 test. I noticed because the G3 proof still showed the old behaviour. After that I
+  committed before every proof run.
+- The G3 API test opened requests with an empty payload. With the self-approval rule removed, the
+  test still failed, but it failed with a 500 from the KYC handler (`KeyError: 'case_id'`), not
+  because a self-approval went through. Fixed by swapping the kind's handlers for no-ops inside
+  `policy_sandbox`. Now the proof shows the request `approved` with `decided_by` equal to
+  `proposed_by`.
 
 ### Session 4
 
