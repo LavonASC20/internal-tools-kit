@@ -2,10 +2,14 @@
 
 from collections.abc import Callable
 
+import pytest
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+from core import masking, policy
 from core.masking import MASK
-from tools.kyc_review.schemas import KycCase
+from tools.kyc_review.permissions import PII_READ
+from tools.kyc_review.schemas import KycCase, Proposal
 
 Login = Callable[[str], TestClient]
 
@@ -147,3 +151,34 @@ def test_spec_outcome_flow_with_audit_trail(client_for: Login) -> None:
     assert raw["national_id"] not in serialized
     assert raw["date_of_birth"] not in serialized
     assert "registry" not in serialized  # rationale stays in the approval payload
+
+
+def test_no_other_owner_can_grant_kyc_actions(app: FastAPI) -> None:
+    with pytest.raises(RuntimeError, match="may only grant feature_flags"):
+        policy.register_permissions(
+            "tools.feature_flags", "feature_flags", {PII_READ: {"engineer"}}
+        )
+    with pytest.raises(RuntimeError, match="belongs to tools.kyc_review"):
+        policy.register_permissions("tools.feature_flags", "kyc", {PII_READ: {"engineer"}})
+    with pytest.raises(RuntimeError, match="belongs to core"):
+        policy.register_permissions("tools.kyc_review", "audit", {"audit.read": {"analyst"}})
+    assert policy.declared_roles_for(PII_READ) == {"analyst", "senior_reviewer"}
+    assert policy.declared_roles_for("audit.read") == {"auditor"}
+
+
+def test_kyc_case_pii_is_masked_on_serialization_unless_revealed() -> None:
+    case = KycCase(
+        id=1,
+        subject_name="Test Subject",
+        national_id="FAKE-1",
+        date_of_birth="1990-01-01",
+        risk_flag="low",
+        status="open",
+    )
+    proposal = Proposal(case=case, approval_request_id=1)
+    assert case.model_dump()["national_id"] == MASK
+    assert proposal.model_dump()["case"]["date_of_birth"] == MASK
+    with masking.revealing({"kyc.case.read"}):
+        assert case.model_dump()["national_id"] == MASK
+    with masking.revealing({PII_READ}):
+        assert proposal.model_dump()["case"]["national_id"] == "FAKE-1"

@@ -13,12 +13,12 @@ router = PolicyRouter(prefix="/kyc", tags=["kyc_review"])
 def list_cases(
     user: Annotated[User, require(CASE_READ)], status: CaseStatus | None = None
 ) -> list[KycCase]:
-    return service.list_cases(user, status)
+    return service.list_cases(status)
 
 
 @router.get("/cases/{case_id}")
 def get_case(case_id: int, user: Annotated[User, require(CASE_READ)]) -> KycCase:
-    return service.get_case(user, case_id)
+    return service.get_case(case_id)
 
 
 @router.post("/cases/{case_id}/propose")

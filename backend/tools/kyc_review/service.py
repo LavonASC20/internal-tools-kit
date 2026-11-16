@@ -4,7 +4,7 @@ from typing import Any
 
 from sqlalchemy import Connection, text
 
-from core import approvals, audit, db, masking
+from core import approvals, audit, db
 from core.approvals import ApprovalKind, ApprovalRequest
 from core.auth import User
 from core.errors import invalid_state, not_found
@@ -33,7 +33,7 @@ def _to_case(row: Any) -> KycCase:
     )
 
 
-def list_cases(user: User, status: CaseStatus | None = None) -> list[KycCase]:
+def list_cases(status: CaseStatus | None = None) -> list[KycCase]:
     with db.connect() as conn:
         rows = conn.execute(
             text(
@@ -42,17 +42,17 @@ def list_cases(user: User, status: CaseStatus | None = None) -> list[KycCase]:
             ),
             {"status": status},
         ).all()
-    return masking.mask_all(user, [_to_case(r) for r in rows])
+    return [_to_case(r) for r in rows]
 
 
-def get_case(user: User, case_id: int) -> KycCase:
+def get_case(case_id: int) -> KycCase:
     with db.connect() as conn:
         row = conn.execute(
             text(f"SELECT {_COLUMNS} FROM kyc_cases WHERE id = :id"), {"id": case_id}
         ).first()
     if row is None:
         raise not_found("KYC case not found")
-    return masking.mask(user, _to_case(row))
+    return _to_case(row)
 
 
 def propose(user: User, case_id: int, decision: Decision, rationale: str) -> Proposal:
@@ -81,7 +81,7 @@ def propose(user: User, case_id: int, decision: Decision, rationale: str) -> Pro
             entity=entity(case_id),
             detail={"decision": decision, "approval_request_id": request.id},
         )
-    return Proposal(case=masking.mask(user, updated), approval_request_id=request.id)
+    return Proposal(case=updated, approval_request_id=request.id)
 
 
 def _set_status(
