@@ -1,76 +1,78 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720" role="img" aria-labelledby="t d">
-  <title id="t">How Devin builds the kit and the tools</title>
-  <desc id="d">Swimlane. A human writes the spec, agent rules and playbook. Devin builds the core with the KYC backend and the web shell in two parallel sessions. A human reviews the core on the pull request and merges. A third session writes the guardrail tests and CI. A fourth session builds feature flags from the playbook, and a finding about the kit goes in as its own fix. A human measures the result. CI runs on every pull request.</desc>
+  <title id="t">Phase 1: the first few tools</title>
+  <desc id="d">Swimlane with three lanes: engineer, Devin and the repo. The engineer writes the rules. Devin builds the core and the first tool in parallel sessions. The engineer reviews the core on the pull request and merges. Devin writes the guardrail tests, then builds the next tool from the playbook. The engineer measures the result. The rules, the review corrections and the guardrail tests all go into the repo as living knowledge, which every later session reads, and which phase 2 reuses for requests from teams.</desc>
   <defs>
     <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#5b6770"/></marker>
     <style>
       text { font-family: Helvetica, Arial, sans-serif; fill: #1c2329; font-size: 14px; }
       .b { font-weight: 700; }
-      .s { font-size: 13px; fill: #3b4650; }
+      .s { font-size: 12.5px; fill: #3b4650; }
       .ln { font-size: 12px; fill: #5b6770; font-weight: 700; letter-spacing: .6px; }
       .lane { fill: #fbfcfd; stroke: #b8c0c7; stroke-width: 1.5; }
       .human { fill: #fff6e0; stroke: #b07a10; stroke-width: 2; }
       .devin { fill: #e8f1fb; stroke: #2f6db5; stroke-width: 2; }
       .gate { fill: #fdeceb; stroke: #b5392f; stroke-width: 2; }
+      .know { fill: #eef7ee; stroke: #3d7d45; stroke-width: 2; }
+      .ghost { fill: #ffffff; stroke: #3d7d45; stroke-width: 1.5; stroke-dasharray: 5 4; }
       .ar { fill: none; stroke: #5b6770; stroke-width: 1.8; marker-end: url(#ah); }
       .tr { fill: none; stroke: #5b6770; stroke-width: 1.8; }
     </style>
   </defs>
   <rect width="1280" height="720" fill="#ffffff"/>
-  <text class="b" x="24" y="40" style="font-size:17px">Humans write the rules and review the core. Devin builds in parallel, then repeats from a playbook.</text>
+  <text class="b" x="24" y="40" style="font-size:17px">Phase 1 · The first few tools: an engineer leads, and corrections become knowledge Devin reuses.</text>
 
-  <rect class="lane" x="16" y="70" width="1248" height="160" rx="10"/>
-  <text class="ln" x="28" y="92">HUMAN</text>
-  <rect class="lane" x="16" y="250" width="1248" height="270" rx="10"/>
-  <text class="ln" x="28" y="272">DEVIN</text>
+  <rect class="lane" x="12" y="80" width="1256" height="160" rx="10"/>
+  <text class="ln" x="24" y="102">ENGINEER</text>
+  <rect class="lane" x="12" y="262" width="1256" height="160" rx="10"/>
+  <text class="ln" x="24" y="284">DEVIN</text>
+  <rect class="lane" x="12" y="444" width="1256" height="160" rx="10"/>
+  <text class="ln" x="24" y="466">REPO</text>
 
-  <!-- human lane -->
-  <rect class="human" x="40" y="110" width="200" height="84" rx="8"/>
-  <text class="b" x="140" y="146" text-anchor="middle">Write the inputs</text>
-  <text class="s" x="140" y="168" text-anchor="middle">spec, agent rules, playbook</text>
+  <!-- engineer lane -->
+  <rect class="human" x="24" y="118" width="200" height="84" rx="8"/>
+  <text class="b" x="124" y="154" text-anchor="middle">1 · Write the rules</text>
+  <text class="s" x="124" y="176" text-anchor="middle">spec, agent rules, playbook</text>
 
-  <rect class="gate" x="500" y="110" width="200" height="84" rx="8"/>
-  <text class="b" x="600" y="146" text-anchor="middle" style="fill:#b5392f">Review the core</text>
-  <text class="s" x="600" y="168" text-anchor="middle">correct on the PR, then merge</text>
+  <rect class="gate" x="454" y="118" width="200" height="84" rx="8"/>
+  <text class="b" x="554" y="154" text-anchor="middle" style="fill:#b5392f">3 · Review the core</text>
+  <text class="s" x="554" y="176" text-anchor="middle">correct on the PR, then merge</text>
 
-  <rect class="human" x="1050" y="110" width="200" height="84" rx="8"/>
-  <text class="b" x="1150" y="146" text-anchor="middle">Measure</text>
-  <text class="s" x="1150" y="168" text-anchor="middle">time, usage, corrections</text>
+  <rect class="human" x="884" y="118" width="200" height="84" rx="8"/>
+  <text class="b" x="984" y="154" text-anchor="middle">6 · Measure</text>
+  <text class="s" x="984" y="176" text-anchor="middle">time, cost and corrections</text>
 
   <!-- devin lane -->
-  <rect class="devin" x="270" y="290" width="190" height="84" rx="8"/>
-  <text class="b" x="365" y="326" text-anchor="middle">Session 1</text>
-  <text class="s" x="365" y="348" text-anchor="middle">core and KYC backend</text>
-  <rect class="devin" x="270" y="404" width="190" height="84" rx="8"/>
-  <text class="b" x="365" y="440" text-anchor="middle">Session 2</text>
-  <text class="s" x="365" y="462" text-anchor="middle">web shell and KYC pages</text>
+  <rect class="devin" x="239" y="300" width="200" height="84" rx="8"/>
+  <text class="b" x="339" y="336" text-anchor="middle">2 · Build the core</text>
+  <text class="s" x="339" y="358" text-anchor="middle">and first tool, in parallel</text>
 
-  <rect class="devin" x="630" y="290" width="190" height="84" rx="8"/>
-  <text class="b" x="725" y="326" text-anchor="middle">Session 3</text>
-  <text class="s" x="725" y="348" text-anchor="middle">guardrail tests and CI</text>
+  <rect class="devin" x="669" y="300" width="200" height="84" rx="8"/>
+  <text class="b" x="769" y="336" text-anchor="middle">4 · Write the guardrails</text>
+  <text class="s" x="769" y="358" text-anchor="middle">tests from the spec, in CI</text>
 
-  <rect class="devin" x="860" y="290" width="200" height="84" rx="8"/>
-  <text class="b" x="960" y="326" text-anchor="middle">Session 4</text>
-  <text class="s" x="960" y="348" text-anchor="middle">feature flags, from the playbook</text>
+  <rect class="devin" x="884" y="300" width="200" height="84" rx="8"/>
+  <text class="b" x="984" y="336" text-anchor="middle">5 · Build the next tool</text>
+  <text class="s" x="984" y="358" text-anchor="middle">from the playbook alone</text>
 
-  <rect class="devin" x="860" y="404" width="200" height="84" rx="8"/>
-  <text class="b" x="960" y="440" text-anchor="middle">Kit fix</text>
-  <text class="s" x="960" y="462" text-anchor="middle">a finding, as its own PR</text>
+  <!-- repo lane -->
+  <rect class="know" x="24" y="482" width="1060" height="84" rx="8"/>
+  <text class="b" x="554" y="518" text-anchor="middle" style="fill:#2c5f33">Living knowledge</text>
+  <text class="s" x="554" y="540" text-anchor="middle">rules, playbook and guardrail tests: written once, read by every later session</text>
+
+  <rect class="ghost" x="1106" y="482" width="150" height="84" rx="8"/>
+  <text class="b" x="1181" y="518" text-anchor="middle" style="fill:#2c5f33">Phase 2</text>
+  <text class="s" x="1181" y="540" text-anchor="middle">requests from teams</text>
 
   <!-- connectors -->
-  <path class="tr" d="M140 194 V446"/>
-  <path class="ar" d="M140 332 H270"/>
-  <path class="ar" d="M140 446 H270"/>
-  <path class="tr" d="M460 446 H480 V332"/>
-  <path class="ar" d="M460 332 H480 V152 H500"/>
-  <path class="ar" d="M600 194 V332 H630"/>
-  <path class="ar" d="M820 332 H860"/>
-  <path class="ar" d="M960 374 V404"/>
-  <path class="ar" d="M1060 332 H1150 V194"/>
-
-  <!-- CI -->
-  <rect class="gate" x="270" y="560" width="790" height="72" rx="8"/>
-  <text class="b" x="665" y="590" text-anchor="middle" style="fill:#b5392f">CI</text>
-  <text class="s" x="665" y="612" text-anchor="middle">runs on every pull request, and a red build blocks the merge</text>
-  <path class="ar" d="M665 560 V520"/>
+  <path class="tr" d="M124 202 V342"/>
+  <path class="ar" d="M124 342 H239"/>
+  <path class="ar" d="M124 342 V482"/>
+  <path class="ar" d="M439 342 H524 V202"/>
+  <path class="ar" d="M654 160 H769 V300"/>
+  <path class="ar" d="M604 202 V482"/>
+  <path class="ar" d="M769 384 V482"/>
+  <path class="ar" d="M869 342 H884"/>
+  <path class="ar" d="M984 482 V384"/>
+  <path class="ar" d="M984 300 V202"/>
+  <path class="ar" d="M1084 524 H1106"/>
 </svg>

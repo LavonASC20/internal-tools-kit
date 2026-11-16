@@ -17,7 +17,7 @@
     </style>
   </defs>
   <rect width="1280" height="720" fill="#ffffff"/>
-  <text class="b" x="24" y="40" style="font-size:17px">Design for the pilot, not built: a plain-English request becomes a reviewed pull request.</text>
+  <text class="b" x="24" y="40" style="font-size:17px">Phase 2 · Design for the pilot, not built: a plain-English request becomes a reviewed pull request.</text>
 
   <rect class="lane" x="16" y="130" width="1248" height="200" rx="10"/>
   <text class="ln" x="28" y="152">PEOPLE</text>
