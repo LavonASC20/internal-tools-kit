@@ -20,7 +20,8 @@ make seed                # drop + recreate the schema, load synthetic users and 
 - API docs: http://localhost:8000/docs
 - Health: http://localhost:8000/api/health
 - The `web` service is a placeholder until `web/package.json` exists, then it runs the Vite dev
-  server on http://localhost:5173.
+  server on http://localhost:5173. Vite proxies `/api` to `API_TARGET` (set to
+  `http://backend:8000` in compose).
 
 `make seed` is safe to rerun; it resets the database to the same fixed data every time.
 
@@ -98,3 +99,13 @@ db/seed.py               applies core + tool schema.sql, seeds users, calls each
 
 To add a tool, follow [playbooks/new-tool.md](playbooks/new-tool.md). No file outside the tool's
 folder needs to change: `main.py` and `db/seed.py` find it by scanning `backend/tools/`.
+
+Two rules core enforces at startup:
+
+- **Action namespaces.** A tool's `permissions.py` sets `NAMESPACE` (KYC uses `kyc`) and may only
+  grant actions under it. Claiming another tool's namespace, or granting `audit.*` or
+  `approvals.*` (owned by core), fails when the app starts.
+- **PII masking.** Mark fields with `pii_field()` on a `PiiModel` and set `pii_action`. Core masks
+  those fields whenever the model is serialized, unless the caller holds `pii_action`. Tools never
+  call masking. A response model that uses `pii_field()` without being a `PiiModel` is refused
+  when the route is created.

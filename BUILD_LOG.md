@@ -40,7 +40,29 @@ with `decided_by = proposed_by` fails on the CHECK; UPDATE, DELETE and TRUNCATE 
 **Got wrong along the way:** first test run hit infinite recursion: the derived approval grants
 read `policy.roles_for`, which itself evaluates derived grants. Fixed by having derived providers
 read only declared grants (`policy.declared_roles_for`). One mypy error on the DBAPI cursor
-context manager. No human corrections.
+context manager.
+
+**Corrected by the human after the PR was opened** (01:07 to 01:10 EST, 2026-11-16, VM clock).
+Three questions, three misses:
+- *Any tool could grant any action.* `policy.register_permissions` merged every tool's grants into
+  one table with no ownership check, so a new tool's `permissions.py` could give `engineer`
+  `kyc.pii.read` and unmask KYC PII. I had shown it working in-process. Nothing (G2, G5, my tests)
+  would have caught it. Fix: each tool declares a `NAMESPACE` and may only grant actions under
+  it; `audit` and `approvals` are core-owned; `audit.read` → `auditor` moved from the KYC tool into
+  `core/audit.py`.
+- *Masking depended on the tool remembering to call it.* The KYC service called `masking.mask` by
+  hand; a tool that forgot would leak PII and nothing before merge would notice. Worse, a
+  `pii_field()` on a plain `BaseModel` was silently ignored, which also blinded the audit PII
+  check. Fix: `PiiModel` masks itself on serialization unless `core.policy` has revealed the
+  caller's PII action for the request (fail closed); routes whose response model marks PII outside
+  a `PiiModel` are refused at startup. The KYC service no longer calls masking.
+- *I wired the web container without reading the web PR.* Compose set `BACKEND_URL`, which
+  nothing reads; the web PR's Vite proxy reads `API_TARGET`, so under compose every `/api` call
+  would have gone to the web container's own localhost. Fix: compose sets `API_TARGET`. Verified by
+  running compose with the web PR's `web/` and calling `/api` through `:5173`.
+
+Also during review, Devin Review found that a session cookie with a non-ASCII signature made
+`hmac.compare_digest` raise (500 instead of 401). Fixed by comparing bytes.
 
 ### Session 2
 
