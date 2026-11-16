@@ -77,14 +77,23 @@ curl -s -b /tmp/sam.jar -X POST $API/approvals/1/approve
 curl -s -b /tmp/audrey.jar "$API/audit?entity=kyc_case:2"
 ```
 
-## How it was built
+## Phase 1: the first few tools
 
-The inputs were written before the first session: [SPEC.md](SPEC.md), [AGENTS.md](AGENTS.md),
+This is how the prototype was built. It is also the recommended way for a team to start with
+Devin: an engineer leads the first few tools, and what they correct is written down once so every
+later session reuses it.
+
+![Phase 1: the first few tools](docs/diagrams/devin-workflow.png)
+
+The rules were written before the first session: [SPEC.md](SPEC.md), [AGENTS.md](AGENTS.md),
 [playbooks/new-tool.md](playbooks/new-tool.md) and the prompts in
 [docs/DEVIN_SESSIONS.md](docs/DEVIN_SESSIONS.md). Devin wrote all the application code and tests
 in four sessions and six pull requests. A human reviewed and merged each one.
 
-![Devin workflow](docs/diagrams/devin-workflow.png)
+Those rules, the playbook and the guardrail tests are the living knowledge. They are files in
+this repo, and each session reads them before it starts. In this build, the nine corrections on
+the first pull request turned into spec rules, three playbook steps and a seventh guardrail test.
+The second tool then needed one correction.
 
 | Session | Pull requests | Time | Devin usage | Human corrections |
 |---|---|---|---|---|
@@ -110,17 +119,20 @@ went wrong.
 
 - Feature flags was named in the spec from the start, so the core was designed knowing this tool
   was coming. A tool nobody planned for is the real test, and it has not been run.
-- One tool is one data point, and feature flags is close to plain CRUD.
+- One tool is one data point, and feature flags is close to plain CRUD. Nine corrections falling
+  to one is a single comparison, not a trend.
 - Review was the expensive part. Session 1 needed nine corrections before its core was safe to
   merge, including that any tool could grant any permission.
 
-### What would come next
+## Phase 2: requests from teams
 
-The second tool started from one plain-English paragraph. The next step is to let anyone file
-that paragraph as a ticket, have an owner approve it, and have Devin pick it up from there. This
-is a design for a pilot. It is not built here.
+This is a design for a pilot. It is not built here.
 
-![Request to pull request](docs/diagrams/request-to-pr.png)
+The second tool started from one plain-English paragraph. Once the living knowledge exists, the
+next step is to let anyone file that paragraph as a ticket, have an owner approve it, and have
+Devin pick it up from there. An engineer still reviews every pull request.
+
+![Phase 2: requests from teams](docs/diagrams/request-to-pr.png)
 
 ## Guardrails
 
