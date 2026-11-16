@@ -40,7 +40,7 @@ export function AuditPage() {
           <Table.Tbody>
             {shown.map((e) => (
               <Table.Tr key={String(e.id)}>
-                <Table.Td>{e.created_at ? new Date(e.created_at).toLocaleString() : ''}</Table.Td>
+                <Table.Td>{e.at ? new Date(e.at).toLocaleString() : ''}</Table.Td>
                 <Table.Td>{userName(e.actor)}</Table.Td>
                 <Table.Td>{e.role}</Table.Td>
                 <Table.Td>{e.tool}</Table.Td>

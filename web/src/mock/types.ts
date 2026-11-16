@@ -24,7 +24,8 @@ export interface MockContext<S> {
   user: MockUser;
   state: S;
   can: (action: string) => boolean;
-  audit: (event: { action: string; entity: string; detail?: Record<string, unknown> }) => void;
+  // authorizedBy picks which of the actor's roles are recorded (default: action), as in core.audit.
+  audit: (event: { action: string; entity: string; detail?: Record<string, unknown>; authorizedBy?: string }) => void;
   requestApproval: (req: { action: string; entity: string; payload: Record<string, unknown> }) => ApprovalRequest;
   mask: <T extends object>(obj: T, fields: (keyof T)[], piiAction: string) => T;
 }
@@ -41,6 +42,8 @@ export interface MockTool<S> {
   tool: string;
   // action -> roles that hold it
   permissions: Record<string, string[]>;
+  // Approval kinds: `action` is what a decider must hold, `proposeAction` what a proposer must hold.
+  approvalKinds: { action: string; proposeAction: string }[];
   initialState: () => S;
   routes: MockRoute<S>[];
   onDecision: (ctx: MockContext<S>, req: ApprovalRequest, outcome: 'approved' | 'rejected') => void;

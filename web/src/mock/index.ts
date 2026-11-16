@@ -15,7 +15,7 @@ const USERS: MockUser[] = [
 
 const CORE_PERMISSIONS: Record<string, string[]> = { 'audit.read': ['auditor'] };
 
-const STORAGE_KEY = 'itk-mock-db-v1';
+const STORAGE_KEY = 'itk-mock-db-v2';
 const SESSION_KEY = 'itk-mock-user';
 
 type AnyTool = MockTool<any>;
@@ -68,13 +68,45 @@ export function resetMock() {
   }
 }
 
-function rolesFor(action: string): string[] {
+function declaredRolesFor(action: string): string[] {
   const all = [CORE_PERMISSIONS, ...mockTools.map((t) => t.permissions)];
   return all.flatMap((p) => p[action] ?? []);
 }
 
+// Mirrors core.approvals: approvals.read = proposers and deciders of any kind, approvals.decide = deciders.
+function derivedRolesFor(action: string): string[] {
+  const kinds = mockTools.flatMap((t) => t.approvalKinds);
+  if (action === 'approvals.read') {
+    return kinds.flatMap((k) => [...declaredRolesFor(k.action), ...declaredRolesFor(k.proposeAction)]);
+  }
+  if (action === 'approvals.decide') return kinds.flatMap((k) => declaredRolesFor(k.action));
+  return [];
+}
+
+function rolesFor(action: string): string[] {
+  return [...declaredRolesFor(action), ...derivedRolesFor(action)];
+}
+
 function allActions(): string[] {
-  return Array.from(new Set([CORE_PERMISSIONS, ...mockTools.map((t) => t.permissions)].flatMap(Object.keys)));
+  const declared = [CORE_PERMISSIONS, ...mockTools.map((t) => t.permissions)].flatMap(Object.keys);
+  return Array.from(new Set([...declared, 'approvals.read', 'approvals.decide']));
+}
+
+function grantingRoles(user: MockUser, action: string): string[] {
+  const granted = user.roles.filter((r) => rolesFor(action).includes(r));
+  return (granted.length ? granted : user.roles).slice().sort();
+}
+
+function canDecide(user: MockUser, req: ApprovalRequest): boolean {
+  return req.status === 'pending' && req.proposed_by !== user.id && userCan(user, req.action);
+}
+
+function approvalOut(user: MockUser, req: ApprovalRequest): ApprovalRequest {
+  return { ...req, can_decide: canDecide(user, req) };
+}
+
+function meOut(user: MockUser) {
+  return { ...user, roles: user.roles.slice().sort(), actions: allActions().filter((a) => userCan(user, a)).sort() };
 }
 
 function userCan(user: MockUser, action: string) {
@@ -91,16 +123,16 @@ function contextFor<S>(user: MockUser, tool: string): MockContext<S> {
     user,
     state: db.tools[tool] as S,
     can: (action) => userCan(user, action),
-    audit: ({ action, entity, detail }) => {
+    audit: ({ action, entity, detail, authorizedBy }) => {
       db.audit.unshift({
         id: db.nextId++,
+        at: new Date().toISOString(),
         actor: user.id,
-        role: user.roles.join(','),
+        role: grantingRoles(user, authorizedBy ?? action).join(','),
         tool,
         action,
         entity,
-        detail: detail ?? null,
-        created_at: new Date().toISOString(),
+        detail: detail ?? {},
       });
     },
     requestApproval: ({ action, entity, payload }) => {
@@ -115,6 +147,8 @@ function contextFor<S>(user: MockUser, tool: string): MockContext<S> {
         decided_by: null,
         comment: null,
         created_at: new Date().toISOString(),
+        decided_at: null,
+        can_decide: false,
       };
       db.approvals.unshift(req);
       return req;
@@ -152,6 +186,7 @@ function requireAction(user: MockUser, action: string) {
 
 function decide(id: string, outcome: 'approved' | 'rejected', body: unknown) {
   const user = requireUser();
+  requireAction(user, 'approvals.decide');
   const req = db.approvals.find((r) => String(r.id) === id);
   if (!req) throw new MockHttpError(404, 'not_found', 'Approval request not found');
   requireAction(user, req.action);
@@ -161,33 +196,37 @@ function decide(id: string, outcome: 'approved' | 'rejected', body: unknown) {
   if (req.status !== 'pending') throw new MockHttpError(409, 'invalid_state', 'Request is not pending');
   const tool = mockTools.find((t) => t.tool === req.tool);
   const ctx = contextFor(user, req.tool);
-  tool?.onDecision(ctx, req, outcome);
   req.status = outcome;
   req.decided_by = user.id;
   req.comment = (body as { comment?: string } | null)?.comment ?? null;
+  req.decided_at = new Date().toISOString();
   ctx.audit({
-    action: outcome === 'approved' ? 'approval.approve' : 'approval.reject',
+    action: outcome === 'approved' ? 'approvals.approve' : 'approvals.reject',
     entity: req.entity,
-    detail: { approval_id: req.id, request_action: req.action },
+    detail: { approval_request_id: req.id, request_action: req.action },
+    authorizedBy: req.action,
   });
-  return req;
+  tool?.onDecision(ctx, req, outcome);
+  return approvalOut(user, req);
 }
 
 function route(method: string, path: string, body: unknown): unknown {
   if (method === 'GET' && path === '/api/users') return USERS;
   if (method === 'POST' && path === '/api/auth/login') {
     const user = USERS.find((u) => u.id === String((body as { user_id?: unknown })?.user_id));
-    if (!user) throw new MockHttpError(422, 'validation_error', 'Unknown user');
+    if (!user) throw new MockHttpError(401, 'unauthenticated', 'Unknown user');
     sessionStorage.setItem(SESSION_KEY, user.id);
-    return { ok: true };
+    return meOut(user);
   }
-  if (method === 'GET' && path === '/api/me') {
-    const user = requireUser();
-    return { ...user, actions: allActions().filter((a) => userCan(user, a)) };
-  }
+  if (method === 'GET' && path === '/api/me') return meOut(requireUser());
   if (method === 'GET' && path === '/api/approvals') {
-    requireUser();
-    return db.approvals;
+    const user = requireUser();
+    requireAction(user, 'approvals.read');
+    const visible = mockTools
+      .flatMap((t) => t.approvalKinds)
+      .filter((k) => userCan(user, k.action) || userCan(user, k.proposeAction))
+      .map((k) => k.action);
+    return db.approvals.filter((r) => visible.includes(r.action)).map((r) => approvalOut(user, r));
   }
   if (method === 'GET' && path === '/api/audit') {
     requireAction(requireUser(), 'audit.read');

@@ -27,6 +27,9 @@ export interface ApprovalRequest {
   decided_by?: Id | null;
   comment?: string | null;
   created_at?: string;
+  decided_at?: string | null;
+  // Set by the backend: pending, not proposed by the caller, and the caller holds `action`.
+  can_decide: boolean;
 }
 
 export interface AuditEvent {
@@ -37,5 +40,5 @@ export interface AuditEvent {
   action: string;
   entity: string;
   detail: Record<string, unknown> | null;
-  created_at?: string;
+  at?: string;
 }

@@ -70,7 +70,7 @@ export function ApprovalsPage() {
                   )}
                 </Table.Td>
                 <Table.Td>
-                  {r.status === 'pending' && can(r.action) && (
+                  {r.status === 'pending' && can(r.action) && r.can_decide && (
                     <Button size="xs" onClick={() => setDeciding(r)}>
                       Decide
                     </Button>

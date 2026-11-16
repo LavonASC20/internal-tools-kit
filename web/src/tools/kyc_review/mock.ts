@@ -39,6 +39,7 @@ const kycMock: MockTool<State> = {
     'kyc.decision.propose': ['analyst'],
     'kyc.decision.approve': ['senior_reviewer'],
   },
+  approvalKinds: [{ action: 'kyc.decision.approve', proposeAction: 'kyc.decision.propose' }],
   initialState: () => ({ cases: seedCases() }),
   routes: [
     {
@@ -73,16 +74,33 @@ const kycMock: MockTool<State> = {
         ctx.audit({
           action: 'kyc.decision.propose',
           entity: `kyc_case:${c.id}`,
-          detail: { decision, approval_id: req.id },
+          detail: { decision, approval_request_id: req.id },
         });
-        return req;
+        return { case: ctx.mask(c, PII, 'kyc.pii.read'), approval_request_id: req.id };
       },
     },
   ],
   onDecision: (ctx, req, outcome) => {
     const c = findCase(ctx.state, String(req.payload.case_id));
-    if (outcome === 'approved') c.status = req.payload.decision === 'clear' ? 'cleared' : 'rejected';
-    else c.status = 'open';
+    const entity = `kyc_case:${c.id}`;
+    if (outcome === 'approved') {
+      const decision = String(req.payload.decision);
+      c.status = decision === 'clear' ? 'cleared' : 'rejected';
+      ctx.audit({
+        action: 'kyc.decision.apply',
+        entity,
+        detail: { decision, status: c.status, approval_request_id: req.id },
+        authorizedBy: req.action,
+      });
+    } else {
+      c.status = 'open';
+      ctx.audit({
+        action: 'kyc.decision.return',
+        entity,
+        detail: { status: 'open', approval_request_id: req.id },
+        authorizedBy: req.action,
+      });
+    }
   },
 };
 

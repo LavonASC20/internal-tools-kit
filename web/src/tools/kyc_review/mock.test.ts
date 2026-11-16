@@ -27,7 +27,7 @@ test('KYC flow: propose, self-approval refused, approve by another reviewer, aud
   await loginAs('dana');
   const proposed = await post('/api/kyc/cases/2/propose', { decision: 'clear', rationale: 'docs verified' });
   expect(proposed.status).toBe(200);
-  const req = await proposed.json();
+  const req = { id: (await proposed.json()).approval_request_id };
   expect((await (await fetch('/api/kyc/cases/2')).json()).status).toBe('pending_approval');
 
   const self = await post(`/api/approvals/${req.id}/approve`);
@@ -45,16 +45,24 @@ test('KYC flow: propose, self-approval refused, approve by another reviewer, aud
   expect((await fetch('/api/audit')).status).toBe(403);
   await loginAs('audrey');
   const audit = await (await fetch('/api/audit')).json();
-  expect(audit.map((e: { action: string }) => e.action)).toEqual(['approval.approve', 'kyc.decision.propose']);
+  expect(audit.map((e: { action: string }) => e.action)).toEqual([
+    'kyc.decision.apply',
+    'approvals.approve',
+    'kyc.decision.propose',
+  ]);
   expect(JSON.stringify(audit)).not.toContain('FAKE-');
 });
 
 test('rejecting a request returns the case to open', async () => {
   await loginAs('ana');
-  const req = await (await post('/api/kyc/cases/3/propose', { decision: 'reject', rationale: 'r' })).json();
+  const { approval_request_id: id } = await (
+    await post('/api/kyc/cases/3/propose', { decision: 'reject', rationale: 'r' })
+  ).json();
   await loginAs('sam');
-  expect((await post(`/api/approvals/${req.id}/reject`)).status).toBe(200);
+  expect((await post(`/api/approvals/${id}/reject`)).status).toBe(200);
   expect((await (await fetch('/api/kyc/cases/3')).json()).status).toBe('open');
+  await loginAs('audrey');
+  expect((await (await fetch('/api/audit')).json())[0].action).toBe('kyc.decision.return');
 });
 
 test('authorization runs before validation', async () => {

@@ -12,7 +12,7 @@ export function Layout({ children }: { children: ReactNode }) {
 
   const items = [
     ...tools.filter((t) => can(t.navAction)).map((t) => ({ to: `/${t.id}`, label: t.title })),
-    { to: '/approvals', label: 'Approvals' },
+    ...(can('approvals.read') ? [{ to: '/approvals', label: 'Approvals' }] : []),
     ...(can('audit.read') ? [{ to: '/audit', label: 'Audit' }] : []),
   ];
 

@@ -4,7 +4,7 @@ Vite + React + TypeScript + Mantine (defaults only).
 
 ```
 npm install
-npm run dev        # proxies /api to API_TARGET (default http://localhost:8000)
+npm run dev        # proxies /api to API_TARGET or BACKEND_URL (default http://localhost:8000)
 npm run dev:mock   # serves /api from the in-browser mock, no backend needed
 npm run typecheck
 npm run build

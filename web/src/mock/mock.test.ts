@@ -15,6 +15,13 @@ test('/api/me lists only the actions the role holds', async () => {
   expect((await (await fetch('/api/me')).json()).actions).not.toContain('audit.read');
 });
 
+test('approvals list requires approvals.read', async () => {
+  for (const user of ['audrey', 'eli']) {
+    await loginAs(user);
+    expect((await fetch('/api/approvals')).status).toBe(403);
+  }
+});
+
 test('audit requires audit.read', async () => {
   await loginAs('ana');
   expect((await fetch('/api/audit')).status).toBe(403);

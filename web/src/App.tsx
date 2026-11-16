@@ -1,4 +1,4 @@
-import { Center, Loader } from '@mantine/core';
+import { Center, Loader, Text } from '@mantine/core';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { ApprovalsPage } from './shell/ApprovalsPage';
 import { AuditPage } from './shell/AuditPage';
@@ -20,13 +20,17 @@ export function App() {
   }
   if (!me) return <LoginPage />;
 
-  const home = tools.find((t) => can(t.navAction));
+  const homeTool = tools.find((t) => can(t.navAction));
+  const home = homeTool ? `/${homeTool.id}` : can('approvals.read') ? '/approvals' : null;
 
   return (
     <Layout>
       {/* Remount pages on user switch so no data fetched for the previous user stays on screen. */}
       <Routes key={String(me.id)}>
-        <Route path="/" element={<Navigate to={home ? `/${home.id}` : '/approvals'} replace />} />
+        <Route
+          path="/"
+          element={home ? <Navigate to={home} replace /> : <Text c="dimmed">No tools are available for your roles.</Text>}
+        />
         <Route path="/approvals" element={<ApprovalsPage />} />
         <Route path="/audit" element={<AuditPage />} />
         {tools.map((t) => (
