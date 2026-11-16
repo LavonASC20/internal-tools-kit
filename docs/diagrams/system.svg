@@ -1,0 +1,148 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720" role="img" aria-labelledby="t d">
+  <title id="t">Internal tools kit architecture</title>
+  <desc id="d">A web shell and tool pages talk to a FastAPI backend. Tools sit above a shared core of auth, policy, approvals, audit and masking, and import it one way. Postgres holds tool tables, one approval table with a self-approval check, and an append-only audit table. Devin adds a new tool from a playbook. Six generic CI tests cover every tool.</desc>
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#5b6770"/></marker>
+    <marker id="ad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#b07a10"/></marker>
+    <style>
+      text { font-family: Helvetica, Arial, sans-serif; fill: #1c2329; font-size: 13px; }
+      .b { font-weight: 700; }
+      .s { font-size: 12px; fill: #3b4650; }
+      .it { font-size: 12px; fill: #3b4650; font-style: italic; }
+      .zl { font-size: 12px; fill: #5b6770; font-weight: 700; letter-spacing: .3px; }
+      .zone { fill: #fbfcfd; stroke: #b8c0c7; stroke-width: 1.5; stroke-dasharray: 6 4; }
+      .edge { fill: #f4f6f8; stroke: #5b6770; stroke-width: 1.5; }
+      .ghost { fill: #ffffff; stroke: #b07a10; stroke-width: 1.5; stroke-dasharray: 5 4; }
+      .enf { fill: #e8f1fb; stroke: #2f6db5; stroke-width: 2; }
+      .store { fill: #fff6e0; stroke: #b07a10; stroke-width: 2; }
+      .inner { fill: #ffffff; stroke: #b07a10; stroke-width: 1.5; }
+      .gate { fill: #fdeceb; stroke: #b5392f; stroke-width: 2; }
+      .ar { fill: none; stroke: #5b6770; stroke-width: 2; marker-end: url(#ah); }
+      .dv { fill: none; stroke: #b07a10; stroke-width: 2; stroke-dasharray: 6 4; marker-end: url(#ad); }
+    </style>
+  </defs>
+  <rect width="1280" height="720" fill="#ffffff"/>
+  <text class="b" x="24" y="36" style="font-size:16px">Controls are written once in the core. Every tool inherits them, and CI proves it.</text>
+
+  <!-- web -->
+  <rect class="zone" x="24" y="60" width="230" height="330" rx="10"/>
+  <text class="zl" x="40" y="80">WEB (REACT + TS)</text>
+  <rect class="edge" x="40" y="94" width="198" height="130" rx="8"/>
+  <text class="b" x="139" y="118" text-anchor="middle">shell</text>
+  <text class="s" x="139" y="138" text-anchor="middle">nav · user switcher</text>
+  <text class="s" x="139" y="154" text-anchor="middle">approvals inbox</text>
+  <text class="s" x="139" y="170" text-anchor="middle">audit view</text>
+  <text class="it" x="139" y="190" text-anchor="middle">shows only allowed actions</text>
+  <rect class="edge" x="40" y="240" width="198" height="134" rx="8"/>
+  <text class="b" x="139" y="264" text-anchor="middle">tool pages</text>
+  <text class="s" x="139" y="284" text-anchor="middle">KYC queue and case</text>
+  <text class="s" x="139" y="300" text-anchor="middle">feature flags</text>
+  <text class="it" x="139" y="320" text-anchor="middle">discovered by glob,</text>
+  <text class="it" x="139" y="336" text-anchor="middle">shell never edited</text>
+
+  <!-- backend -->
+  <rect class="zone" x="290" y="60" width="600" height="480" rx="10"/>
+  <text class="zl" x="306" y="80">FASTAPI BACKEND</text>
+
+  <rect class="zone" x="310" y="94" width="560" height="150" rx="8"/>
+  <text class="zl" x="326" y="114">TOOLS/ · ONE FOLDER EACH: ROUTES, SERVICE, PERMISSIONS, SCHEMA, TESTS</text>
+  <rect class="edge" x="330" y="128" width="160" height="96" rx="8"/>
+  <text class="b" x="410" y="152" text-anchor="middle">kyc_review</text>
+  <text class="s" x="410" y="172" text-anchor="middle">cases, PII fields</text>
+  <text class="s" x="410" y="188" text-anchor="middle">propose a decision</text>
+  <text class="it" x="410" y="208" text-anchor="middle">built with the core</text>
+  <rect class="edge" x="510" y="128" width="160" height="96" rx="8"/>
+  <text class="b" x="590" y="152" text-anchor="middle">feature_flags</text>
+  <text class="s" x="590" y="172" text-anchor="middle">dev, staging, prod</text>
+  <text class="s" x="590" y="188" text-anchor="middle">prod toggle needs a lead</text>
+  <text class="it" x="590" y="208" text-anchor="middle">built from the playbook</text>
+  <rect class="ghost" x="690" y="128" width="160" height="96" rx="8"/>
+  <text class="b" x="770" y="152" text-anchor="middle" style="fill:#7a5408">next tool</text>
+  <text class="s" x="770" y="172" text-anchor="middle">refunds, and the</text>
+  <text class="s" x="770" y="188" text-anchor="middle">ten after it</text>
+
+  <path class="ar" d="M410 244 V306"/>
+  <text class="it" x="422" y="296">tools import core, never the reverse</text>
+
+  <rect class="zone" x="310" y="306" width="560" height="216" rx="8"/>
+  <text class="zl" x="326" y="326">CORE/ · WRITTEN ONCE, REUSED BY EVERY TOOL</text>
+  <g>
+    <rect class="enf" x="322" y="340" width="100" height="166" rx="8"/>
+    <text class="b" x="372" y="364" text-anchor="middle">auth</text>
+    <text class="s" x="372" y="386" text-anchor="middle">stub login</text>
+    <text class="s" x="372" y="402" text-anchor="middle">signed cookie</text>
+    <text class="it" x="372" y="426" text-anchor="middle">OIDC would</text>
+    <text class="it" x="372" y="442" text-anchor="middle">swap in here</text>
+
+    <rect class="enf" x="432" y="340" width="100" height="166" rx="8"/>
+    <text class="b" x="482" y="364" text-anchor="middle">policy</text>
+    <text class="s" x="482" y="386" text-anchor="middle">every route</text>
+    <text class="s" x="482" y="402" text-anchor="middle">declares</text>
+    <text class="s" x="482" y="418" text-anchor="middle">one action</text>
+    <text class="it" x="482" y="442" text-anchor="middle">deny by default</text>
+
+    <rect class="enf" x="542" y="340" width="100" height="166" rx="8"/>
+    <text class="b" x="592" y="364" text-anchor="middle">approvals</text>
+    <text class="s" x="592" y="386" text-anchor="middle">propose,</text>
+    <text class="s" x="592" y="402" text-anchor="middle">then decide</text>
+    <text class="it" x="592" y="426" text-anchor="middle">proposer</text>
+    <text class="it" x="592" y="442" text-anchor="middle">cannot decide</text>
+
+    <rect class="enf" x="652" y="340" width="100" height="166" rx="8"/>
+    <text class="b" x="702" y="364" text-anchor="middle">audit</text>
+    <text class="s" x="702" y="386" text-anchor="middle">one call per</text>
+    <text class="s" x="702" y="402" text-anchor="middle">state change</text>
+    <text class="it" x="702" y="426" text-anchor="middle">same</text>
+    <text class="it" x="702" y="442" text-anchor="middle">transaction</text>
+
+    <rect class="enf" x="762" y="340" width="100" height="166" rx="8"/>
+    <text class="b" x="812" y="364" text-anchor="middle">masking</text>
+    <text class="s" x="812" y="386" text-anchor="middle">PII fields</text>
+    <text class="s" x="812" y="402" text-anchor="middle">marked once</text>
+    <text class="it" x="812" y="426" text-anchor="middle">masked unless</text>
+    <text class="it" x="812" y="442" text-anchor="middle">role may read</text>
+  </g>
+
+  <!-- postgres -->
+  <rect class="store" x="926" y="60" width="330" height="480" rx="10"/>
+  <text class="b" x="1091" y="86" text-anchor="middle">Postgres</text>
+  <rect class="inner" x="944" y="104" width="294" height="84" rx="6"/>
+  <text class="b" x="1091" y="128" text-anchor="middle">tool tables</text>
+  <text class="s" x="1091" y="148" text-anchor="middle">kyc_cases · flags</text>
+  <text class="it" x="1091" y="168" text-anchor="middle">each tool ships its own schema.sql</text>
+  <rect class="inner" x="944" y="208" width="294" height="124" rx="6"/>
+  <text class="b" x="1091" y="232" text-anchor="middle">approval_requests</text>
+  <text class="s" x="1091" y="252" text-anchor="middle">one table for every tool</text>
+  <text class="s" x="1091" y="272" text-anchor="middle">CHECK (decided_by &lt;&gt; proposed_by)</text>
+  <text class="it" x="1091" y="296" text-anchor="middle">holds even on a direct insert</text>
+  <rect class="inner" x="944" y="352" width="294" height="124" rx="6"/>
+  <text class="b" x="1091" y="376" text-anchor="middle">audit_events</text>
+  <text class="s" x="1091" y="396" text-anchor="middle">trigger rejects UPDATE and DELETE</text>
+  <text class="s" x="1091" y="416" text-anchor="middle">no PII in the detail column</text>
+  <text class="it" x="1091" y="440" text-anchor="middle">append-only</text>
+  <text class="it" x="1091" y="506" text-anchor="middle">change + approval + audit row</text>
+  <text class="it" x="1091" y="522" text-anchor="middle">commit together, or not at all</text>
+
+  <path class="ar" d="M254 225 H290"/>
+  <path class="ar" d="M890 300 H926"/>
+
+  <!-- devin -->
+  <rect class="store" x="24" y="410" width="230" height="130" rx="10"/>
+  <text class="b" x="139" y="436" text-anchor="middle">Devin + the playbook</text>
+  <text class="s" x="139" y="458" text-anchor="middle">a one-paragraph request,</text>
+  <text class="s" x="139" y="474" text-anchor="middle">one session, one new tool</text>
+  <text class="it" x="139" y="498" text-anchor="middle">the diff stays inside tools/</text>
+  <text class="it" x="139" y="514" text-anchor="middle">and the core is not touched</text>
+  <path class="dv" d="M254 430 H272 V268 H770 V224"/>
+
+  <!-- CI band -->
+  <rect class="gate" x="24" y="560" width="1232" height="136" rx="10"/>
+  <text class="b" x="40" y="586" style="fill:#b5392f">CI guardrails: six generic tests that discover routes, roles and tools at runtime, so a new tool is covered without writing them</text>
+  <text class="s" x="40" y="612"><tspan class="b">G1</tspan>  every route declares a policy action</text>
+  <text class="s" x="40" y="634"><tspan class="b">G2</tspan>  every role against every route: 403 exactly when the role lacks the action</text>
+  <text class="s" x="40" y="656"><tspan class="b">G3</tspan>  a proposer cannot decide their own request, by API or direct insert</text>
+  <text class="s" x="660" y="612"><tspan class="b">G4</tspan>  audit rows cannot change, and a failed change leaves no row</text>
+  <text class="s" x="660" y="634"><tspan class="b">G5</tspan>  core imports no tool, and no tool imports another</text>
+  <text class="s" x="660" y="656"><tspan class="b">G6</tspan>  a caller without the PII action never receives raw PII</text>
+  <text class="it" x="40" y="682">A rule that only lives in a prompt is a request. These fail the build.</text>
+</svg>
