@@ -51,6 +51,7 @@ def create_app() -> FastAPI:
     app.include_router(core_router)
     for tool in discover_tools():
         app.include_router(tool.router, prefix=API_PREFIX)
+    policy.freeze()
     return app
 
 

@@ -2,7 +2,8 @@
 
 Actions are namespaced: `<namespace>.<entity>.<verb>`. Each namespace has one owner (a tool, or
 core for `audit` and `approvals`), and only the owner may declare or grant actions in it. A tool
-declares its namespace and grants in its permissions.py.
+declares its namespace and grants in its permissions.py. Each namespace's grants are registered
+once, and `freeze()` refuses new ones after startup.
 """
 
 import re
@@ -28,27 +29,57 @@ _NAMESPACE = re.compile(r"[a-z][a-z0-9_]*")
 _grants: dict[str, set[str]] = {}
 _derived: list[Callable[[], Grants]] = []
 _namespace_owners: dict[str, str] = {}
+_registered: dict[str, dict[str, frozenset[str]]] = {}
+_frozen = False
+
+
+def freeze() -> None:
+    """Refuse any new namespace or grant from now on. `main.create_app` calls this."""
+    global _frozen
+    _frozen = True
+
+
+def is_frozen() -> bool:
+    return _frozen
 
 
 def claim_namespace(owner: str, namespace: str) -> None:
     """Reserve an action namespace for `owner`. Claiming another owner's namespace fails."""
     if not _NAMESPACE.fullmatch(namespace):
         raise RuntimeError(f"{owner}: invalid action namespace {namespace!r}")
-    current = _namespace_owners.setdefault(namespace, owner)
-    if current != owner:
+    current = _namespace_owners.get(namespace)
+    if current is None and _frozen:
+        raise RuntimeError(f"{owner}: policy is frozen; cannot claim namespace {namespace!r}")
+    if current is not None and current != owner:
         raise RuntimeError(f"{owner}: action namespace {namespace!r} belongs to {current}")
+    _namespace_owners[namespace] = owner
+
+
+def namespace_owner(namespace: str) -> str | None:
+    return _namespace_owners.get(namespace)
 
 
 def register_permissions(owner: str, namespace: str, permissions: Grants) -> None:
-    """Merge `owner`'s {action: roles} grants. Every action must be in `owner`'s namespace.
+    """Register `owner`'s {action: roles} grants. Every action must be in `owner`'s namespace.
 
-    Nothing is registered unless every action passes. Re-registering the same grants is a no-op.
+    A namespace's grants are registered once: repeating the identical grants is a no-op, and any
+    different grants for it fail, whoever claims to be the owner. Nothing is registered unless
+    every check passes.
     """
-    claim_namespace(owner, namespace)
     foreign = sorted(a for a in permissions if not a.startswith(f"{namespace}."))
     if foreign:
         raise RuntimeError(f"{owner} may only grant {namespace}.* actions, not {foreign}")
-    for action, roles in permissions.items():
+    claim_namespace(owner, namespace)
+    normalized = {action: frozenset(roles) for action, roles in permissions.items()}
+    existing = _registered.get(namespace)
+    if existing is not None:
+        if existing != normalized:
+            raise RuntimeError(f"{owner}: grants for {namespace!r} are already registered")
+        return
+    if _frozen:
+        raise RuntimeError(f"{owner}: policy is frozen; cannot register {namespace!r} grants")
+    _registered[namespace] = normalized
+    for action, roles in normalized.items():
         _grants.setdefault(action, set()).update(roles)
 
 

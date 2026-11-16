@@ -1,5 +1,5 @@
 [tool.pytest.ini_options]
-testpaths = ["tests", "tools"]
+testpaths = ["tests", "tools", "core/tests"]
 pythonpath = ["."]
 addopts = "-q"
 

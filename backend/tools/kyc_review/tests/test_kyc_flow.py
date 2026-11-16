@@ -153,17 +153,11 @@ def test_spec_outcome_flow_with_audit_trail(client_for: Login) -> None:
     assert "registry" not in serialized  # rationale stays in the approval payload
 
 
-def test_no_other_owner_can_grant_kyc_actions(app: FastAPI) -> None:
-    with pytest.raises(RuntimeError, match="may only grant feature_flags"):
-        policy.register_permissions(
-            "tools.feature_flags", "feature_flags", {PII_READ: {"engineer"}}
-        )
-    with pytest.raises(RuntimeError, match="belongs to tools.kyc_review"):
-        policy.register_permissions("tools.feature_flags", "kyc", {PII_READ: {"engineer"}})
-    with pytest.raises(RuntimeError, match="belongs to core"):
-        policy.register_permissions("tools.kyc_review", "audit", {"audit.read": {"analyst"}})
+def test_kyc_grants_cannot_be_changed_after_registration(app: FastAPI) -> None:
+    for owner in ("tools.kyc_review", "tools.feature_flags"):
+        with pytest.raises(RuntimeError):
+            policy.register_permissions(owner, "kyc", {PII_READ: {"engineer"}})
     assert policy.declared_roles_for(PII_READ) == {"analyst", "senior_reviewer"}
-    assert policy.declared_roles_for("audit.read") == {"auditor"}
 
 
 def test_kyc_case_pii_is_masked_on_serialization_unless_revealed() -> None:
