@@ -25,6 +25,7 @@ FastAPI, SQLAlchemy 2, Postgres, pytest. Vite, React, TypeScript, one component 
 backend/
   main.py          composition root: discovers tools, mounts routers
   core/            auth, policy, approvals, audit, masking, db
+  core/tests/      unit tests of core (import no tool)
   tools/<name>/    routes, service, permissions, schemas, schema.sql, tests/
   tests/           generic guardrail tests
 web/src/
@@ -41,10 +42,10 @@ Boundary rules: tools import core. Core never imports tools. Tools never import 
 | Primitive | Behavior |
 |---|---|
 | **auth** | `POST /api/auth/login {user_id}` sets a signed HttpOnly cookie. `GET /api/me` returns id, name, roles and allowed actions. `GET /api/users` lists seeded users for the login picker. |
-| **policy** | Every route declares one action, for example `kyc.case.read`. Each tool declares which roles hold which actions in its `permissions.py`. Deny by default. Authorization runs before validation. |
-| **approvals** | One table, `approval_requests`, for all tools: tool, action, entity, payload, proposed_by, status, decided_by, comment. A tool registers a handler that applies the change when a request is approved, in the same transaction. The decider must hold the request's approve action and must not be the proposer. The table has `CHECK (decided_by <> proposed_by)`. |
+| **policy** | Every route declares one action, for example `kyc.case.read`. Each tool declares which roles hold which actions in its `permissions.py`. Each tool declares one namespace and grants only actions under it, once; approval kinds follow the same rule. Core owns `audit` and `approvals`. Policy is frozen after startup. Deny by default. Authorization runs before validation. |
+| **approvals** | One table, `approval_requests`, for all tools: tool, action, entity, payload, proposed_by, status, decided_by, comment. A tool registers a handler that applies the change when a request is approved, in the same transaction. The decider must hold the request's approve action and must not be the proposer. The table has `CHECK (decided_by <> proposed_by)`. The payload never contains PII. |
 | **audit** | `audit.record(...)` writes to `audit_events` (actor, role, tool, action, entity, detail) inside the caller's transaction. A trigger rejects UPDATE and DELETE. Detail never contains PII. |
-| **masking** | Fields marked as PII are masked in responses unless the caller holds the tool's PII action. |
+| **masking** | PII is marked on a `PiiModel` and masked on every serialization unless the caller holds its PII action. A route with an action returns a model. |
 
 Generic routes owned by core: `GET /api/approvals`, `POST /api/approvals/{id}/approve`, `POST /api/approvals/{id}/reject`, `GET /api/audit`.
 
@@ -67,7 +68,8 @@ Proposing moves the case to `pending_approval` and creates an approval request. 
 | `kyc.pii.read` | yes | yes | no (masked) |
 | `kyc.decision.propose` | yes | no | no |
 | `kyc.decision.approve` | no | yes | no |
-| `audit.read` | no | no | yes |
+
+`audit.read` is a core action held by `auditor`.
 
 ## 7. Tool 2: feature flags (the request given to the playbook session)
 
@@ -85,11 +87,12 @@ These live in `backend/tests/` and are generic, so every tool inherits them.
 
 | ID | Test |
 |---|---|
-| G1 | Every route except health and auth declares a policy action. |
+| G1 | Every route except health, `/api/auth/*`, `/api/me` and `/api/users` declares a policy action. |
 | G2 | For every route and every role, the response is 403 exactly when the role lacks the declared action. |
 | G3 | A proposer cannot decide their own request, through the API or by direct insert into the table. |
 | G4 | UPDATE and DELETE on `audit_events` fail. A change that fails midway leaves no state change and no audit row. |
 | G5 | Core imports no tool. No tool imports another tool. |
 | G6 | A caller without the PII action never receives raw PII values. |
+| G7 | No tool grants or registers an action outside its own namespace. A foreign action, a duplicate namespace or a core namespace fails. |
 
-Done means: G1 to G6 pass in CI, `docker compose up` plus the seed script gives a working app from a clean clone, and the README explains how to run it.
+Done means: G1 to G7 pass in CI, `docker compose up` plus the seed script gives a working app from a clean clone, and the README explains how to run it.
