@@ -5,7 +5,7 @@ One entry per Devin session. Failures stay in.
 | Session | Start | End | Minutes | Consumption | Human corrections | Defects found in review | Guardrails green on first PR |
 |---|---|---|---|---|---|---|---|
 | 1 Core and KYC backend | 2026-11-16 00:37 EST | 2026-11-16 01:36 EST | ~59 | not measured in-session | 9 (3 in round 1, 6 in round 2) | 1 (Devin Review) | n/a (G1 to G6 are session 3) |
-| 2 Web shell and KYC pages | 2026-11-16 00:37 EST | 2026-11-16 00:50 EST | ~13 | | 0 | 3 (Devin Review) | n/a (G1-G6 not written yet; web typecheck, build and vitest green) |
+| 2 Web shell and KYC pages | 2026-11-16 00:37 EST | 2026-11-16 00:50 EST | ~13 | | 1 | 3 (Devin Review) | n/a (G1-G6 not written yet; web typecheck, build and vitest green) |
 | 3 Guardrail tests and CI | | | | | | | |
 | 4 Feature flags (playbook) | | | | | | | |
 
