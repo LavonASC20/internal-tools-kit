@@ -48,6 +48,11 @@ class PiiModel(BaseModel):
     @classmethod
     def __pydantic_init_subclass__(cls, **kwargs: Any) -> None:
         super().__pydantic_init_subclass__(**kwargs)
+        own = PiiModel.__pydantic_decorators__.model_serializers["_mask_pii"].func
+        if any(d.func is not own for d in cls.__pydantic_decorators__.model_serializers.values()):
+            raise TypeError(
+                f"{cls.__name__} must not define a model_serializer: it disables masking"
+            )
         names = cls.pii_fields()
         if not names:
             return
