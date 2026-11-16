@@ -1,0 +1,53 @@
+# Local prototype stack. Credentials below are for local development only.
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: itk
+      POSTGRES_PASSWORD: itk
+      POSTGRES_DB: itk
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U itk -d itk"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      DATABASE_URL: postgresql+psycopg://itk:itk@postgres:5432/itk
+      SESSION_SECRET: local-dev-only-not-a-secret
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app/backend
+      - ./db:/app/db
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # Placeholder until web/ exists. Once web/package.json is present it runs the Vite dev server.
+  web:
+    image: node:20-alpine
+    working_dir: /app
+    environment:
+      BACKEND_URL: http://backend:8000
+    command: >
+      sh -c "if [ -f package.json ]; then npm install && npm run dev -- --host 0.0.0.0 --port 5173;
+      else echo 'web/ is not built yet; the backend is at http://localhost:8000/docs'; tail -f /dev/null; fi"
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./web:/app
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
