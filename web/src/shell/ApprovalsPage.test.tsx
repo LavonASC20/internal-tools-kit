@@ -1,4 +1,5 @@
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { installMock, resetMock } from '../mock';
 import { loginAs, renderAt } from '../test/render';
 import { ApprovalsPage } from './ApprovalsPage';
@@ -20,7 +21,7 @@ test('Decide is shown when /api/me lists the request action', async () => {
   expect(await screen.findByRole('button', { name: 'Decide' })).toBeInTheDocument();
 });
 
-test('Decide is hidden on a request the backend says the caller cannot decide', async () => {
+test('Decide is shown on your own request and the server refusal is displayed', async () => {
   await loginAs('dana');
   await fetch('/api/kyc/cases/2/propose', {
     method: 'POST',
@@ -28,8 +29,10 @@ test('Decide is hidden on a request the backend says the caller cannot decide', 
     body: JSON.stringify({ decision: 'clear', rationale: 'ok' }),
   });
   renderAt('/approvals', '/approvals', <ApprovalsPage />);
-  expect(await screen.findByText('kyc_case:2')).toBeInTheDocument();
-  expect(screen.getAllByRole('button', { name: 'Decide' })).toHaveLength(1);
+  const row = (await screen.findByText('kyc_case:2')).closest('tr')!;
+  await userEvent.click(within(row).getByRole('button', { name: 'Decide' }));
+  await userEvent.click(await screen.findByRole('button', { name: 'Approve' }));
+  expect(await screen.findByText(/\(self_approval\)/)).toBeInTheDocument();
 });
 
 test('Decide is hidden when /api/me does not list the request action', async () => {

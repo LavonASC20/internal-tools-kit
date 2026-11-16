@@ -29,6 +29,7 @@ export interface ApprovalRequest {
   created_at?: string;
   decided_at?: string | null;
   // Set by the backend: pending, not proposed by the caller, and the caller holds `action`.
+  // Not used to gate Decide, so a self-approval attempt reaches the server and shows its `self_approval` error.
   can_decide: boolean;
 }
 
